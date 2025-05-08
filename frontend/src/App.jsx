@@ -1,18 +1,25 @@
-import Navbar from './components/Header.jsx'
+
 import HomePage from './pages/HomePage.jsx'
-import { Route, Routes, Router } from "react-router"
-import { Toaster } from 'react-hot-toast'
+import MesaPrivada from './pages/MesaPrivada.jsx'
+import { useState } from 'react'
 
 function App() {
+  const [currentPage, setCurrentPage] = useState('home');
+  const [username, setUsername] = useState('player');
+  const renderPage = () => {
+    switch (currentPage) {
+      case 'home':
+        return <HomePage setUsername={setUsername} setCurrentPage={setCurrentPage}/>;
+      case 'mesaprivada':
+        return <MesaPrivada setCurrentPage={setCurrentPage} username={username} />;
+      default:
+        return <HomePage setUsername={setUsername} setCurrentPage={setCurrentPage}/>;
+    }
+  };
+  
   return (
     <div className='min-w-[768px] overflow-x-auto'>
-      <div>
-        <Routes>
-          <Route path='/' element={<HomePage/>}/>
-          <Route path='/lobby' element={<div>LOBBY</div>}/>
-        </Routes>
-        <Toaster />
-      </div>
+      {renderPage()}
     </div>
   )
 }

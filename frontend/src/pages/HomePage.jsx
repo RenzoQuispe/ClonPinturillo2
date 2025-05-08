@@ -1,7 +1,19 @@
 import Header from "../components/Header"
 import Footer from "../components/Footer"
+import { useRef } from "react";
+import { useNavigate } from "react-router"
 
-function HomePage() {
+function HomePage({ setUsername, setCurrentPage }) {
+    const navigate = useNavigate();
+    const inputRefUsername = useRef(null); // referencia al input
+
+    const handleMesaPrivada = () => {
+        const username = inputRefUsername.current.value.trim();
+        if (username) {
+            setUsername(username);
+            setCurrentPage('mesaprivada');
+        }
+    };
     return (
 
         <div style={{ backgroundColor: '#336767' }} className="min-h-screen flex flex-col items-center">
@@ -15,6 +27,7 @@ function HomePage() {
                     <div>
                         <h1 className="text-white text-xl ml-2">Nombre del Jugador</h1>
                         <input
+                            ref={inputRefUsername}
                             defaultValue="Player"
                             spellCheck={false}
                             className="text-2xl py-2 px-4 border border-white mt-3 rounded-xl w-[600px] ml-2
@@ -22,7 +35,7 @@ function HomePage() {
                         />
                         <button
                             className="text-2xl py-2 font-bold bg-yellow-400 rounded-xl w-[600px] mt-3 ml-2 hover:brightness-150 cursor-pointer"
-                            onClick={() => window.open('', '_blank')}
+
                         >
                             !A JUGAR¡
                         </button>
@@ -30,13 +43,13 @@ function HomePage() {
                     <div className="justify-between mt-3 ml-2">
                         <button
                             className="w-[290px] py-1 text-2xl text-yellow-400 border rounded-xl hover:brightness-150 cursor-pointer"
-                            onClick={() => window.open('', '_blank')}
+
                         >
                             LOBBY
                         </button>
                         <button
                             className="w-[290px] py-1 text-2xl text-yellow-400 border rounded-xl ml-5 hover:brightness-150 cursor-pointer"
-                            onClick={() => window.open('', '_blank')}
+                            onClick={handleMesaPrivada}
                         >
                             MESA PRIVADA
                         </button>
