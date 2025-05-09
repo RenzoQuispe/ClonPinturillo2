@@ -1,12 +1,32 @@
 import Header from "../components/Header"
 import Footer from "../components/Footer"
 
-function MesaPrivada({setCurrentPage, username}) {
+function MesaPrivada({ setUsername, setCurrentPage, username }) {
+    const handleHomePage = () => {
+        setUsername(username)
+        setCurrentPage('home')
+    }
     return (
 
-        <div style={{ backgroundColor: '#336767' }} className="min-h-screen flex flex-col items-center">
+        <div style={{ backgroundColor: '#336767', height: '100dvh' }} className="overflow-auto flex flex-col items-center">
             <Header />
-            <h1 className="text-white text-xl ml-2">HOLA {username}</h1>
+            <div className="min-h-[450px] h-[515px] w-[410px] bg-cover bg-center mt-15 mb-15" style={{ backgroundImage: "url('/public/HojaLapiz.png')" }}>
+                <button className="ml-10 mt-5 hover:brightness-110" onClick={handleHomePage}>
+                    <img src="/atras.png" alt="Volver" className="h-[48px] w-[48px]" />
+                </button>
+                <div className="flex flex-col items-center space-y-15 mt-25">
+                    <button
+                        style={{ backgroundColor: '#69a4a4', textShadow: '0.75px 0.75px 0 #000, -0.75px -0.75px 0 #000, 0.75px -0.75px 0 #000, -0.75px 0.75px 0 #000', border: '0.75px solid black', }}
+                        className="w-[225px] text-white font-bold text-2xl rounded-sm hover:brightness-120">
+                        UNIRSE A MESA
+                    </button>
+                    <button
+                        style={{ backgroundColor: '#69a4a4', textShadow: '0.75px 0.75px 0 #000, -0.75px -0.75px 0 #000, 0.75px -0.75px 0 #000, -0.75px 0.75px 0 #000', border: '0.75px solid black', }}
+                        className="w-[225px] text-white font-bold text-2xl rounded-sm hover:brightness-120">
+                        CREAR MESA
+                    </button>
+                </div>
+            </div>
             <Footer />
         </div>
     )

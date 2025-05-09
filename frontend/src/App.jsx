@@ -9,9 +9,9 @@ function App() {
   const renderPage = () => {
     switch (currentPage) {
       case 'home':
-        return <HomePage setUsername={setUsername} setCurrentPage={setCurrentPage}/>;
+        return <HomePage setUsername={setUsername} setCurrentPage={setCurrentPage} username={username}/>;
       case 'mesaprivada':
-        return <MesaPrivada setCurrentPage={setCurrentPage} username={username} />;
+        return <MesaPrivada setUsername={setUsername} setCurrentPage={setCurrentPage} username={username} />;
       default:
         return <HomePage setUsername={setUsername} setCurrentPage={setCurrentPage}/>;
     }

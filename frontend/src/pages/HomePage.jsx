@@ -1,10 +1,8 @@
 import Header from "../components/Header"
 import Footer from "../components/Footer"
 import { useRef } from "react";
-import { useNavigate } from "react-router"
 
-function HomePage({ setUsername, setCurrentPage }) {
-    const navigate = useNavigate();
+function HomePage({ setUsername, setCurrentPage, username }) {
     const inputRefUsername = useRef(null); // referencia al input
 
     const handleMesaPrivada = () => {
@@ -16,9 +14,9 @@ function HomePage({ setUsername, setCurrentPage }) {
     };
     return (
 
-        <div style={{ backgroundColor: '#336767' }} className="min-h-screen flex flex-col items-center">
+        <div style={{ backgroundColor: '#336767', height: '100dvh' }} className="overflow-auto flex flex-col items-center">
             <Header />
-            <div className="relative flex justify-center h-[550px] w-[660px] mt-5 mb-20 ">
+            <div className="relative flex justify-center min-h-[300px] h-[540px] w-[660px] mt-5 mb-20 ">
                 <img src='/pinturillo2_tipo1.png' className="absolute h-[400px] w-[500px]" />
                 <div
                     className="absolute bottom-0 left-0 h-[235px] w-[650px] rounded-2xl flex flex-col justify-between p-4"
@@ -28,7 +26,7 @@ function HomePage({ setUsername, setCurrentPage }) {
                         <h1 className="text-white text-xl ml-2">Nombre del Jugador</h1>
                         <input
                             ref={inputRefUsername}
-                            defaultValue="Player"
+                            defaultValue={username?.trim() ? username : "Player"}
                             spellCheck={false}
                             className="text-2xl py-2 px-4 border border-white mt-3 rounded-xl w-[600px] ml-2
              bg-white/20 backdrop-blur-md placeholder-white text-white"
@@ -57,7 +55,7 @@ function HomePage({ setUsername, setCurrentPage }) {
                 </div>
             </div>
             <Footer />
-        </div>
+        </div>  
     )
 }
 export default HomePage
