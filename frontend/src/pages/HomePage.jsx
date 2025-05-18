@@ -3,7 +3,7 @@ import Footer from "../components/Footer"
 import { useRef } from "react";
 
 function HomePage({ setUsername, setCurrentPage, username }) {
-    const inputRefUsername = useRef(null); // referencia al input
+    const inputRefUsername = useRef(null); 
 
     const handleMesaPrivada = () => {
         const username = inputRefUsername.current.value.trim();

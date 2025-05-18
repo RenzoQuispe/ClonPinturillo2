@@ -1,7 +1,5 @@
 import Header from "../components/Header"
 import Footer from "../components/Footer"
-import CrearMesa from "./CrearMesa"
-import UnirseMesa from "./UnirseMesa"
 
 function MesaPrivada({ setUsername, setCurrentPage, username }) {
     const handleHomePage = () => {
