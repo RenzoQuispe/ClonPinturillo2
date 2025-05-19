@@ -1,61 +1,40 @@
 import Header from "../components/Header";
 import Footer from "../components/Footer";
-import React, { useRef, useState, useEffect } from "react";
-
+import React, { useRef, useState } from "react";
 import socket from "../lib/socket";
 
 function UnirseMesa({ setUsername, setCurrentPage, setNumMesa, setCodigoMesa, username }) {
   const inputRefNumMesa = useRef(null);
   const inputRefCodigoMesa = useRef(null);
-
   const [errorMessage, setErrorMessage] = useState("");
 
-  // Atras
+  // Volver atrás
   const handleMesaPrivada = () => {
-    setUsername(username);
     setCurrentPage('mesaprivada');
   };
 
+  // Unirse a la sala
   const handleUnirse = () => {
-    return;
-  }
-  /*
-  useEffect(() => {
-    socket.off('error'); // Limpiar listeners previos
+    const numMesa = inputRefNumMesa.current?.value;
+    const codigoMesa = inputRefCodigoMesa.current?.value;
 
-    socket.on('error', (msg) => {
-      setErrorMessage(msg);
-      setTimeout(() => setErrorMessage(""), 3000);
-    });
-
-    return () => {
-      socket.off('error');
-    };
-  }, []);
-
-
-  const handleUnirse = () => {
-    const numMesa = inputRefNumMesa.current.value.trim();
-    const codigoMesa = inputRefCodigoMesa.current.value.trim();
-
-    if (numMesa.length === 6 && codigoMesa !== "") {
-      socket.emit("unirse_sala", { username, numMesa, codigoMesa }, (response) => {
-        if (response.success) {
-          setNumMesa(numMesa);
-          setCodigoMesa(codigoMesa);
-          setCurrentPage("mesa");
-          setErrorMessage("");
-        } else {
-          setErrorMessage(response.message);
-          setTimeout(() => setErrorMessage(""), 3000);
-        }
-      });
-    } else {
-      setErrorMessage("Verifica que el número de mesa tenga 6 dígitos y el código no esté vacío.");
+    if (!numMesa || !codigoMesa) {
+      setErrorMessage("Debes ingresar todos los campos.");
+      return;
     }
-  };
-  */
 
+    // Emitir intento de conexión
+    socket.emit("unirse_sala", { username, numMesa, codigoMesa }, (response) => {
+      if (!response || !response.success) {
+        setErrorMessage(response?.message || "Error al unirse a la sala.");
+      } else {
+        setNumMesa(numMesa);
+        setCodigoMesa(codigoMesa);
+        setCurrentPage("mesa");
+        setErrorMessage(""); 
+      }
+    });
+  };
 
   return (
     <div style={{ backgroundColor: '#336767', height: '100dvh' }} className="overflow-auto flex flex-col items-center">

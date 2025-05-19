@@ -1,11 +1,11 @@
 import { Server } from 'socket.io';
 import express from 'express';
 import http from 'http';
-
+   
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server, { cors: { origin: "*" } });
-
+  
 const salas = {};
 
 function generarMesaId() {
@@ -17,7 +17,7 @@ function generarMesaId() {
 }
 
 io.on("connection", (socket) => {
-  
+
   console.log('Usuario conectado:', socket.id);
 
   // Verificar existencia de sala
@@ -30,21 +30,19 @@ io.on("connection", (socket) => {
   // Crear sala
   socket.on("crear_sala", ({ username, roomCode }) => {
     const mesaId = generarMesaId();
-    socket.join(mesaId);
+    //socket.join(mesaId);
     salas[mesaId] = {
       codigo: roomCode,
-      jugadores: [{ id: socket.id, username }],
+      jugadores: [],
+      //jugadores: [{ id: socket.id, username }],
     };
     console.log(`${username} creo la sala ${mesaId} con contraseña ${roomCode}`);
     console.log(JSON.stringify(salas, null, 2));
     socket.emit('sala_creada', { mesaId, roomCode });
   });
-
-
-
-  /*
+   
   // Unirse a sala
-  socket.on("unirse_sala", ({ username, numMesa, codigoMesa }) => {
+  socket.on("unirse_sala", ({ username, numMesa, codigoMesa }, callback) => {
     const sala = salas[numMesa];
     if (!sala) return callback({ success: false, message: 'Sala no existe' });
     if (sala.codigo !== codigoMesa) return callback({ success: false, message: 'Código incorrecto' });
@@ -52,24 +50,27 @@ io.on("connection", (socket) => {
     const existeJugador = sala.jugadores.some(j => j.id === socket.id);
     if (!existeJugador) {
       sala.jugadores.push({ id: socket.id, username });
+      console.log(`${username} se unió a la sala ${numMesa}`);
     }
 
     socket.join(numMesa);
-
-    console.log(`${username} se unió a la sala ${numMesa}`);
-    io.to(numMesa).emit("actualizar_jugadores", sala.jugadores);
+    io.to(numMesa).emit("actualizar_jugadores", sala.jugadores); //  Emitir a todos
+    console.log(`Emitidos jugadores a sala ${numMesa}`, sala.jugadores);
+    
+    return callback({ success: true });
   });
-
+  // Lista de jugadores en Mesa.jsx
   socket.on('solicitar_jugadores', (numMesa) => {
     const sala = salas[numMesa];
     if (sala) {
       socket.emit('actualizar_jugadores', sala.jugadores);
     }
   });
-  */
-  
+  // Para el chat en tiempo real
+  socket.on("enviar_mensaje", ({ numMesa, mensaje }) => {
+    io.to(numMesa).emit("nuevo_mensaje", mensaje);
+  });
 
-  
   // Desconexión
   socket.on("disconnect", () => {
     console.log("Usuario desconectado:", socket.id);

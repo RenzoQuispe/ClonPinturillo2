@@ -1,64 +1,45 @@
 import Header from "../components/Header";
 import Footer from "../components/Footer";
-import React, { useRef, useEffect } from "react";
-
+import React, { useRef, useEffect, useState } from "react";
+import crearSala from "../lib/crearSala";
 import socket from "../lib/socket";
 
-function CrearMesa({ setNumMesa, setCodigoMesa, setUsername, setCurrentPage, username }) {
+function CrearMesa({ setUsername, setCurrentPage, setNumMesa, setCodigoMesa, username, numMesa }) {
+
+
+    const [errorMessage, setErrorMessage] = useState("");
     const inputRefCodigoMesa = useRef(null);
-    // Atras
+
+    const [mesaId, setMesaId] = useState(null);
+    const [roomCode, setRoomCode] = useState('');
+
+    // Atras(Regreso a MesaPrivada.jsx)
     const handleMesaPrivada = () => {
         setUsername(username);
         setCurrentPage('mesaprivada');
         setCodigoMesa("");
         setNumMesa("");
     };
+
     // Para boton crear Mesa
-    const handleCrear = () => {
+    const handleCrear = async() => {
+        //Crea la sala
         const codigo = inputRefCodigoMesa.current.value.trim();
         if (!codigo) return;
-
-        socket.emit("crear_sala", { username, roomCode: codigo });
+        const { mesaId, roomCode} = await crearSala(username, codigo); //socket.emit("crear_sala", { username, roomCode: codigo });
+        // El creador de la sala se une a la sala que creo
+        socket.emit("unirse_sala", { username, numMesa: mesaId, codigoMesa: roomCode }, (response) => {
+            if (!response || !response.success) {
+                setErrorMessage(response?.message || "Error al unirse a la sala.");
+            } else {
+                setNumMesa(mesaId);
+                setCodigoMesa(roomCode);
+                setCurrentPage("mesa");
+                setErrorMessage("");
+            }
+        });
     };
 
-    useEffect(() => {
-        socket.on('sala_creada', ({ mesaId, roomCode }) => {
-            setNumMesa(mesaId);
-            setCodigoMesa(roomCode);
-            setUsername(username);
-
-            // Cambiar a página mesa, donde está el listener
-            setCurrentPage('mesa');
-        });
-
-        return () => {
-            socket.off('sala_creada');
-        };
-    }, []);
-
-    /*
-    useEffect(() => {
-        socket.on('sala_creada', ({ mesaId, roomCode }) => {
-            setNumMesa(mesaId);
-            setCodigoMesa(roomCode);
-            setUsername(username);
-
-            setCurrentPage('mesa');  // Cambiar de página aquí
-
-            // Luego unirse a la sala para recibir eventos posteriores
-            socket.emit('unirse_sala', { username, numMesa: mesaId, codigoMesa: roomCode }, (response) => {
-                if (!response.success) {
-                    console.error("Error al unirse justo después de crear:", response.message);
-                }
-            });
-        });
-
-        return () => {
-            socket.off('sala_creada');
-        };
-    }, []);
-
-    */
     return (
         <div style={{ backgroundColor: '#336767', height: '100dvh' }} className="overflow-auto flex flex-col items-center">
             <Header />

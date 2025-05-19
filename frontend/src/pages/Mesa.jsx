@@ -4,7 +4,22 @@ import React, { useEffect, useState } from "react";
 import socket from "../lib/socket";
 
 function Mesa({ setCodigoMesa, setNumMesa, setUsername, setCurrentPage, username, numMesa, codigoMesa }) {
+
+    useEffect(() => {
+        console.log("Socket conectado con id:", socket.id);
+    }, []);
+    useEffect(() => {
+        if (!socket.connected) {
+            socket.connect(); // asegurarse de que está conectado
+        }
+    }, []);
+
+    // Lista de Jugadores
     const [jugadores, setJugadores] = useState([]);
+    // Chat
+    const [mensajes, setMensajes] = useState([]);
+    const [mensajeActual, setMensajeActual] = useState("");
+
 
     // Regresar al menú principal
     const handleMenu = () => {
@@ -46,30 +61,52 @@ function Mesa({ setCodigoMesa, setNumMesa, setUsername, setCurrentPage, username
         };
     }, []);
 
-
-    /*
-        useEffect(() => {
-        socket.on('actualizar_jugadores', (jugadores) => {
+    //  Para recibir la lista de jugadores desde el servidor
+    // useEffect de jugadores
+    useEffect(() => {
+        const handleActualizarJugadores = (jugadores) => {
+            console.log("✅ [Mesa] actualizar_jugadores:", jugadores);
             setJugadores(jugadores);
-        });
+        };
 
-        // Emitir unirse_sala para registrar al jugador en la sala
-        if (numMesa && codigoMesa && username) {
-            socket.emit('unirse_sala', { username, numMesa, codigoMesa }, (response) => {
-                if (!response.success) {
-                    console.error("Error al unirse:", response.message);
+        socket.on("actualizar_jugadores", handleActualizarJugadores);
+
+        // 👇 Solo emitir unirse_sala si aún no estamos en la sala (opcional: usar useRef o flag global)
+        if (jugadores.length === 0 && numMesa && codigoMesa && username) {
+            socket.emit("unirse_sala", { username, numMesa, codigoMesa }, (response) => {
+                console.log("🔁 [Mesa] respuesta unirse_sala:", response);
+                if (!response?.success) {
+                    alert("Error al unirse: " + response.message);
+                    handleMenu();
                 } else {
-                    // Solicitar la lista para sincronizar
-                    socket.emit('solicitar_jugadores', numMesa);
+                    socket.emit("solicitar_jugadores", numMesa);
                 }
             });
         }
 
         return () => {
-            socket.off('actualizar_jugadores');
+            socket.off("actualizar_jugadores", handleActualizarJugadores);
         };
     }, [numMesa, codigoMesa, username]);
-    */
+
+    // para recibir mensajes desde el servidor
+    useEffect(() => {
+        socket.on("nuevo_mensaje", (mensaje) => {
+            setMensajes(prev => [...prev, mensaje]);
+        });
+
+        return () => {
+            socket.off("nuevo_mensaje");
+        };
+    }, []);
+    const enviarMensaje = () => {
+        if (mensajeActual.trim() !== "") {
+            const nuevoMensaje = { username, texto: mensajeActual };
+            socket.emit("enviar_mensaje", { numMesa, mensaje: nuevoMensaje });
+            setMensajeActual(""); // limpiar campo
+        }
+    };
+
 
     return (
         <div style={{ backgroundColor: '#336767', height: '100dvh' }} className="overflow-auto flex flex-col items-center">
@@ -98,7 +135,34 @@ function Mesa({ setCodigoMesa, setNumMesa, setUsername, setCurrentPage, username
                 </div>
 
                 {/* Chat */}
-                <div className="border-3 h-[605px] w-[400px] text-white p-2 font-bold">Campo de chat</div>
+                <div className="border-3 h-[605px] w-[400px] text-white p-2 flex flex-col justify-between">
+                    <div className="overflow-y-auto flex-1">
+                        <h2 className="text-xl font-bold mb-2">CHAT</h2>
+                        <ul className="space-y-1">
+                            {mensajes.map((msg, idx) => (
+                                <li key={idx} className="text-white text-sm">
+                                    <span className="font-bold">{msg.username}: </span>{msg.texto}
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+                    <div className="mt-2 flex">
+                        <input
+                            value={mensajeActual}
+                            onChange={(e) => setMensajeActual(e.target.value)}
+                            onKeyDown={(e) => e.key === 'Enter' && enviarMensaje()}
+                            placeholder="Escribe un mensaje..."
+                            className="flex-1 p-1 rounded-sm text-white"
+                        />
+                        <button
+                            onClick={enviarMensaje}
+                            className="ml-2 px-3 bg-teal-600 text-white font-bold rounded-sm hover:brightness-110"
+                        >
+                            Enviar
+                        </button>
+                    </div>
+                </div>
+
             </div>
             <Footer />
         </div>

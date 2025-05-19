@@ -19,7 +19,7 @@ function App() {
       case 'mesaprivada':
         return <MesaPrivada setUsername={setUsername} setCurrentPage={setCurrentPage} username={username} />;
       case 'crearmesa':
-        return <CrearMesa setNumMesa={setNumMesa} setCodigoMesa={setCodigoMesa} setUsername={setUsername} setCurrentPage={setCurrentPage} username={username} codigoMesa={codigoMesa} />;
+        return <CrearMesa setUsername={setUsername} setCurrentPage={setCurrentPage} setNumMesa={setNumMesa} setCodigoMesa={setCodigoMesa} username={username} numMesa={numMesa}/>;
       case 'unirsemesa':
         return <UnirseMesa setUsername={setUsername} setCurrentPage={setCurrentPage} setNumMesa={setNumMesa} setCodigoMesa={setCodigoMesa} username={username} />;
       case 'mesa':
