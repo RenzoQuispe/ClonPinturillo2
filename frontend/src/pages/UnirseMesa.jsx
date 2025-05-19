@@ -1,12 +1,24 @@
 import Header from "../components/Header";
 import Footer from "../components/Footer";
-import React, { useRef, useState } from "react";
-import socket from "../lib/socket";
+import React, { useRef, useState, useEffect } from "react";
+import socket from "../libs/socket";
 
 function UnirseMesa({ setUsername, setCurrentPage, setNumMesa, setCodigoMesa, username }) {
+  
   const inputRefNumMesa = useRef(null);
   const inputRefCodigoMesa = useRef(null);
+
   const [errorMessage, setErrorMessage] = useState("");
+  // Cuando errorMessage cambia, iniciar temporizador para borrarlo
+  useEffect(() => {
+    if (errorMessage) {
+      const timer = setTimeout(() => {
+        setErrorMessage(""); // Limpia el mensaje después de 3s
+      }, 1200);
+
+      return () => clearTimeout(timer); // Limpia el timeout si el componente se desmonta o se actualiza antes
+    }
+  }, [errorMessage]);
 
   // Volver atrás
   const handleMesaPrivada = () => {
@@ -28,10 +40,11 @@ function UnirseMesa({ setUsername, setCurrentPage, setNumMesa, setCodigoMesa, us
       if (!response || !response.success) {
         setErrorMessage(response?.message || "Error al unirse a la sala.");
       } else {
+        setUsername(username)
         setNumMesa(numMesa);
         setCodigoMesa(codigoMesa);
         setCurrentPage("mesa");
-        setErrorMessage(""); 
+        setErrorMessage("");
       }
     });
   };
@@ -40,7 +53,7 @@ function UnirseMesa({ setUsername, setCurrentPage, setNumMesa, setCodigoMesa, us
     <div style={{ backgroundColor: '#336767', height: '100dvh' }} className="overflow-auto flex flex-col items-center">
       <Header />
       <div className="min-h-[450px] h-[515px] w-[410px] bg-cover bg-center mt-15 mb-15" style={{ backgroundImage: "url('/public/HojaLapiz.png')" }}>
-        <button className="ml-10 mt-8 hover:brightness-110" onClick={handleMesaPrivada}>
+        <button className="ml-10 mt-5 hover:brightness-110" onClick={handleMesaPrivada}>
           <img src="/atras.png" alt="Volver" className="h-[48px] w-[48px]" />
         </button>
         <div className="flex flex-col items-center">

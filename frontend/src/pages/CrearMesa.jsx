@@ -1,17 +1,23 @@
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import React, { useRef, useEffect, useState } from "react";
-import crearSala from "../lib/crearSala";
-import socket from "../lib/socket";
+import socket from "../libs/socket";
 
 function CrearMesa({ setUsername, setCurrentPage, setNumMesa, setCodigoMesa, username, numMesa }) {
 
-
-    const [errorMessage, setErrorMessage] = useState("");
     const inputRefCodigoMesa = useRef(null);
 
-    const [mesaId, setMesaId] = useState(null);
-    const [roomCode, setRoomCode] = useState('');
+    const [errorMessage, setErrorMessage] = useState("");
+    // Cuando errorMessage cambia, iniciar temporizador para borrarlo
+    useEffect(() => {
+        if (errorMessage) {
+            const timer = setTimeout(() => {
+                setErrorMessage(""); // Limpia el mensaje después de 3s
+            }, 3000);
+
+            return () => clearTimeout(timer); // Limpia el timeout si el componente se desmonta o se actualiza antes
+        }
+    }, [errorMessage]);
 
     // Atras(Regreso a MesaPrivada.jsx)
     const handleMesaPrivada = () => {
@@ -22,43 +28,22 @@ function CrearMesa({ setUsername, setCurrentPage, setNumMesa, setCodigoMesa, use
     };
 
     // Para boton crear Mesa
-    const handleCrear = async () => {
+    const handleCrear = () => {
         //Crea la sala
         const codigo = inputRefCodigoMesa.current.value.trim();
-        if (!codigo) return;
+        if (!codigo) {
+            setErrorMessage("Ingresar una contraseña")
+            return;
+        }
         socket.emit("crear_sala", { username, roomCode: codigo });
-        //const { mesaId, roomCode } = await crearSala(username, codigo);
+
         socket.once("sala_creada", ({ mesaId, roomCode }) => {
+            console.log("hecho :D")
             setNumMesa(mesaId);
             setCodigoMesa(roomCode);
-
-            socket.emit("unirse_sala", { username, numMesa: mesaId, codigoMesa: roomCode }, (response) => {
-                if (!response || !response.success) {
-                    setErrorMessage(response?.message || "Error al unirse a la sala.");
-                } else {
-                    console.log("hecho :D")
-                    setNumMesa(mesaId);
-                    setCodigoMesa(roomCode);
-                    setCurrentPage("mesa");
-                    setErrorMessage("");
-                }
-            });
+            setCurrentPage("mesa");
+            setErrorMessage("");
         });
-
-        /*
-        const { mesaId, roomCode} = await crearSala(username, codigo); //socket.emit("crear_sala", { username, roomCode: codigo });
-        // El creador de la sala se une a la sala que creo
-        socket.emit("unirse_sala", { username, numMesa: mesaId, codigoMesa: roomCode }, (response) => {
-            if (!response || !response.success) {
-                setErrorMessage(response?.message || "Error al unirse a la sala.");
-            } else {
-                setNumMesa(mesaId);
-                setCodigoMesa(roomCode);
-                setCurrentPage("mesa");
-                setErrorMessage("");
-            }
-        });
-        */
 
     };
 
@@ -79,6 +64,9 @@ function CrearMesa({ setUsername, setCurrentPage, setNumMesa, setCodigoMesa, use
                             style={{ backgroundColor: '#bfc2c4' }}
                             className="text-2xl py-1 px-4 border border-gray-400 rounded-sm w-[225px] mt-1"
                         />
+                        {errorMessage && (
+                            <div className="mt-3 text-red-600 text-xl">{errorMessage}</div>
+                        )}
                         <button
                             style={{
                                 backgroundColor: '#69a4a4',

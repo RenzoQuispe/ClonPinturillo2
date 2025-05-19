@@ -1,37 +1,15 @@
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import React, { useEffect, useState } from "react";
-import socket from "../lib/socket";
+import socket from "../libs/socket";
 
 function Mesa({ setCodigoMesa, setNumMesa, setUsername, setCurrentPage, username, numMesa, codigoMesa }) {
-
-    useEffect(() => {
-        if (numMesa) {
-            socket.emit("solicitar_jugadores", numMesa);
-            console.log("hecho :D solicitar_jugadores");
-        }else{
-            console.log("error");
-        }
-    }, [numMesa]);
-    
-    useEffect(() => {
-        console.log("Socket conectado con id:", socket.id);
-        console.log("numMesa:", numMesa);
-        console.log("codigoMesa:", codigoMesa);
-    }, []);
-    useEffect(() => {
-        if (!socket.connected) {
-            console.log("hecho");
-            socket.connect(); // asegurarse de que está conectado
-        }
-    }, []);
 
     // Lista de Jugadores
     const [jugadores, setJugadores] = useState([]);
     // Chat
     const [mensajes, setMensajes] = useState([]);
     const [mensajeActual, setMensajeActual] = useState("");
-
 
     // Regresar al menú principal
     const handleMenu = () => {
@@ -44,20 +22,14 @@ function Mesa({ setCodigoMesa, setNumMesa, setUsername, setCurrentPage, username
     // Verifica si la sala existe (al entrar o reconectar)
     useEffect(() => {
         if (numMesa) {
-            console.log("hecho");
             socket.emit("verificar_sala", numMesa);
-        }else{
-            console.log("error");
         }
-
         const handleReconnect = () => {
             if (numMesa) {
                 socket.emit("verificar_sala", numMesa);
             }
         };
-
         socket.on("connect", handleReconnect);
-
         return () => {
             socket.off("connect", handleReconnect);
         };
@@ -69,7 +41,6 @@ function Mesa({ setCodigoMesa, setNumMesa, setUsername, setCurrentPage, username
             alert("La sala ha sido eliminada o ya no está disponible.");
             handleMenu();
         };
-
         socket.on("sala_eliminada", handleSalaEliminada);
         return () => {
             socket.off("sala_eliminada", handleSalaEliminada);
@@ -79,19 +50,18 @@ function Mesa({ setCodigoMesa, setNumMesa, setUsername, setCurrentPage, username
     //  Para recibir la lista de jugadores desde el servidor
     useEffect(() => {
         const handleActualizarJugadores = (jugadores) => {
-            console.log("✅ [Mesa] actualizar_jugadores:", jugadores);
             setJugadores(jugadores);
-            console.log("Jugadores: ", jugadores)
         };
-
         socket.on("actualizar_jugadores", handleActualizarJugadores);
-
         return () => {
             socket.off("actualizar_jugadores", handleActualizarJugadores);
         };
     }, []);
-
-
+    useEffect(() => {
+        if (numMesa) {
+            socket.emit("solicitar_jugadores", numMesa);
+        }
+    }, [numMesa]);
 
     // para recibir mensajes desde el servidor
     useEffect(() => {
@@ -110,7 +80,6 @@ function Mesa({ setCodigoMesa, setNumMesa, setUsername, setCurrentPage, username
             setMensajeActual(""); // limpiar campo
         }
     };
-
 
     return (
         <div style={{ backgroundColor: '#336767', height: '100dvh' }} className="overflow-auto flex flex-col items-center">
@@ -156,7 +125,7 @@ function Mesa({ setCodigoMesa, setNumMesa, setUsername, setCurrentPage, username
                             onChange={(e) => setMensajeActual(e.target.value)}
                             onKeyDown={(e) => e.key === 'Enter' && enviarMensaje()}
                             placeholder="Escribe un mensaje..."
-                            className="flex-1 p-1 rounded-sm text-white"
+                            className="flex-1 p-1 rounded-sm text-white border"
                         />
                         <button
                             onClick={enviarMensaje}

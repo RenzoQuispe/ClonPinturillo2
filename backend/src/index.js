@@ -11,7 +11,7 @@ const salas = {};
 function generarMesaId() {
   let id;
   do {
-    id = Math.floor(100000 + Math.random() * 900000); // 6 dígitos únicos
+    id = Math.floor(100000 + Math.random() * 900000);
   } while (salas[id]);
   return id;
 }
@@ -29,15 +29,16 @@ io.on("connection", (socket) => {
 
   // Crear sala
   socket.on("crear_sala", ({ username, roomCode }) => {
-    const mesaId = generarMesaId();
-    //socket.join(mesaId);
+    const mesaId = generarMesaId().toString();
     salas[mesaId] = {
       codigo: roomCode,
-      jugadores: []
-      //jugadores: [{ id: socket.id, username }],
+      jugadores: [{ id: socket.id, username }],
     };
+    socket.join(mesaId);
     console.log(`${username} creo la sala ${mesaId} con contraseña ${roomCode}`);
     console.log(JSON.stringify(salas, null, 2));
+    const sala = salas[mesaId];
+    io.to(mesaId).emit("actualizar_jugadores", sala.jugadores);
     socket.emit('sala_creada', { mesaId, roomCode });
   });
 
@@ -54,14 +55,12 @@ io.on("connection", (socket) => {
     }
 
     socket.join(numMesa);
-    io.to(numMesa).emit("actualizar_jugadores", sala.jugadores); //  Emitir a todos
-    console.log(`Emitidos jugadores a sala ${numMesa}`, sala.jugadores);
+    io.to(numMesa).emit("actualizar_jugadores", sala.jugadores);
 
     return callback({ success: true });
   });
   // Lista de jugadores en Mesa.jsx
   socket.on("solicitar_jugadores", (numMesa) => {
-    console.log(`Jugadores Solicitados y emitidos por ${socket.id} cargando ...`)
     const sala = salas[numMesa];
     console.log(`Jugadores Solicitados y emitidos por ${socket.id}: `, sala.jugadores)
     io.to(numMesa).emit("actualizar_jugadores", sala.jugadores);
@@ -93,6 +92,16 @@ io.on("connection", (socket) => {
       }
     }
   });
+  // Debug socket-sala
+  socket.on("debug_sala", async (mesaId) => {
+    const sockets = await io.in(mesaId).fetchSockets();
+    console.log(`Clientes en la sala ${mesaId}:`);
+    sockets.forEach(s => {
+      console.log(`- ID: ${s.id}`);
+      console.log(`Rooms de este socket:`, [...s.rooms]);
+    });
+  });
+
 });
 
 server.listen(5000, () => {

@@ -9,8 +9,8 @@ import { useState } from 'react'
 function App() {
   const [currentPage, setCurrentPage] = useState('home');
   const [username, setUsername] = useState('player');
-  const [numMesa, setNumMesa] = useState('');
-  const [codigoMesa, setCodigoMesa] = useState('');
+  const [numMesa, setNumMesa] = useState(null);
+  const [codigoMesa, setCodigoMesa] = useState(null);
 
   const renderPage = () => {
     switch (currentPage) {
