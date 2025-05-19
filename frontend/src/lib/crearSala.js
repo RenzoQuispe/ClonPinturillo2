@@ -9,6 +9,7 @@ function crearSala(username, roomCode) {
         socket.once("sala_creada", ({ mesaId, roomCode }) => {
             resolve({ mesaId, roomCode });
         });
+        
 
         // Opcional: puedes agregar un timeout en caso de que no haya respuesta
         setTimeout(() => {

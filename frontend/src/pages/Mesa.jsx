@@ -6,10 +6,22 @@ import socket from "../lib/socket";
 function Mesa({ setCodigoMesa, setNumMesa, setUsername, setCurrentPage, username, numMesa, codigoMesa }) {
 
     useEffect(() => {
+        if (numMesa) {
+            socket.emit("solicitar_jugadores", numMesa);
+            console.log("hecho :D solicitar_jugadores");
+        }else{
+            console.log("error");
+        }
+    }, [numMesa]);
+    
+    useEffect(() => {
         console.log("Socket conectado con id:", socket.id);
+        console.log("numMesa:", numMesa);
+        console.log("codigoMesa:", codigoMesa);
     }, []);
     useEffect(() => {
         if (!socket.connected) {
+            console.log("hecho");
             socket.connect(); // asegurarse de que está conectado
         }
     }, []);
@@ -32,7 +44,10 @@ function Mesa({ setCodigoMesa, setNumMesa, setUsername, setCurrentPage, username
     // Verifica si la sala existe (al entrar o reconectar)
     useEffect(() => {
         if (numMesa) {
+            console.log("hecho");
             socket.emit("verificar_sala", numMesa);
+        }else{
+            console.log("error");
         }
 
         const handleReconnect = () => {
@@ -62,32 +77,21 @@ function Mesa({ setCodigoMesa, setNumMesa, setUsername, setCurrentPage, username
     }, []);
 
     //  Para recibir la lista de jugadores desde el servidor
-    // useEffect de jugadores
     useEffect(() => {
         const handleActualizarJugadores = (jugadores) => {
             console.log("✅ [Mesa] actualizar_jugadores:", jugadores);
             setJugadores(jugadores);
+            console.log("Jugadores: ", jugadores)
         };
 
         socket.on("actualizar_jugadores", handleActualizarJugadores);
 
-        // 👇 Solo emitir unirse_sala si aún no estamos en la sala (opcional: usar useRef o flag global)
-        if (jugadores.length === 0 && numMesa && codigoMesa && username) {
-            socket.emit("unirse_sala", { username, numMesa, codigoMesa }, (response) => {
-                console.log("🔁 [Mesa] respuesta unirse_sala:", response);
-                if (!response?.success) {
-                    alert("Error al unirse: " + response.message);
-                    handleMenu();
-                } else {
-                    socket.emit("solicitar_jugadores", numMesa);
-                }
-            });
-        }
-
         return () => {
             socket.off("actualizar_jugadores", handleActualizarJugadores);
         };
-    }, [numMesa, codigoMesa, username]);
+    }, []);
+
+
 
     // para recibir mensajes desde el servidor
     useEffect(() => {

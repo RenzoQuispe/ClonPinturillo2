@@ -1,11 +1,11 @@
 import { Server } from 'socket.io';
 import express from 'express';
 import http from 'http';
-   
+
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server, { cors: { origin: "*" } });
-  
+
 const salas = {};
 
 function generarMesaId() {
@@ -26,21 +26,21 @@ io.on("connection", (socket) => {
       socket.emit("sala_eliminada");
     }
   });
-  
+
   // Crear sala
   socket.on("crear_sala", ({ username, roomCode }) => {
     const mesaId = generarMesaId();
     //socket.join(mesaId);
     salas[mesaId] = {
       codigo: roomCode,
-      jugadores: [],
+      jugadores: []
       //jugadores: [{ id: socket.id, username }],
     };
     console.log(`${username} creo la sala ${mesaId} con contraseña ${roomCode}`);
     console.log(JSON.stringify(salas, null, 2));
     socket.emit('sala_creada', { mesaId, roomCode });
   });
-   
+
   // Unirse a sala
   socket.on("unirse_sala", ({ username, numMesa, codigoMesa }, callback) => {
     const sala = salas[numMesa];
@@ -56,15 +56,15 @@ io.on("connection", (socket) => {
     socket.join(numMesa);
     io.to(numMesa).emit("actualizar_jugadores", sala.jugadores); //  Emitir a todos
     console.log(`Emitidos jugadores a sala ${numMesa}`, sala.jugadores);
-    
+
     return callback({ success: true });
   });
   // Lista de jugadores en Mesa.jsx
-  socket.on('solicitar_jugadores', (numMesa) => {
+  socket.on("solicitar_jugadores", (numMesa) => {
+    console.log(`Jugadores Solicitados y emitidos por ${socket.id} cargando ...`)
     const sala = salas[numMesa];
-    if (sala) {
-      socket.emit('actualizar_jugadores', sala.jugadores);
-    }
+    console.log(`Jugadores Solicitados y emitidos por ${socket.id}: `, sala.jugadores)
+    io.to(numMesa).emit("actualizar_jugadores", sala.jugadores);
   });
   // Para el chat en tiempo real
   socket.on("enviar_mensaje", ({ numMesa, mensaje }) => {

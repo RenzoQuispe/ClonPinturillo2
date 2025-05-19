@@ -22,10 +22,30 @@ function CrearMesa({ setUsername, setCurrentPage, setNumMesa, setCodigoMesa, use
     };
 
     // Para boton crear Mesa
-    const handleCrear = async() => {
+    const handleCrear = async () => {
         //Crea la sala
         const codigo = inputRefCodigoMesa.current.value.trim();
         if (!codigo) return;
+        socket.emit("crear_sala", { username, roomCode: codigo });
+        //const { mesaId, roomCode } = await crearSala(username, codigo);
+        socket.once("sala_creada", ({ mesaId, roomCode }) => {
+            setNumMesa(mesaId);
+            setCodigoMesa(roomCode);
+
+            socket.emit("unirse_sala", { username, numMesa: mesaId, codigoMesa: roomCode }, (response) => {
+                if (!response || !response.success) {
+                    setErrorMessage(response?.message || "Error al unirse a la sala.");
+                } else {
+                    console.log("hecho :D")
+                    setNumMesa(mesaId);
+                    setCodigoMesa(roomCode);
+                    setCurrentPage("mesa");
+                    setErrorMessage("");
+                }
+            });
+        });
+
+        /*
         const { mesaId, roomCode} = await crearSala(username, codigo); //socket.emit("crear_sala", { username, roomCode: codigo });
         // El creador de la sala se une a la sala que creo
         socket.emit("unirse_sala", { username, numMesa: mesaId, codigoMesa: roomCode }, (response) => {
@@ -38,6 +58,8 @@ function CrearMesa({ setUsername, setCurrentPage, setNumMesa, setCodigoMesa, use
                 setErrorMessage("");
             }
         });
+        */
+
     };
 
     return (
