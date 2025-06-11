@@ -1,6 +1,6 @@
 import Header from "../components/Header";
 import Footer from "../components/Footer";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import socket from "../libs/socket";
 
 function Mesa({ setCodigoMesa, setNumMesa, setUsername, setCurrentPage, username, numMesa, codigoMesa }) {
@@ -96,7 +96,7 @@ function Mesa({ setCodigoMesa, setNumMesa, setUsername, setCurrentPage, username
             setMensajeActual("");
         }
     };
-    //contador
+    //contador turnos
     const [contadorTurno, setContadorTurno] = useState(10);
     useEffect(() => {
         const handleEstadoTurno = ({ turno, contador }) => {
@@ -111,6 +111,8 @@ function Mesa({ setCodigoMesa, setNumMesa, setUsername, setCurrentPage, username
     // Rondas y fin de la partida
     const [ronda, setRonda] = useState(1);
     const [finPartida, setFinPartida] = useState(false);
+    const [contadorReinicio, setContadorReinicio] = useState(10);
+    const intervaloReinicio = useRef(null);
     useEffect(() => {
         const handleEstadoTurno = ({ turno, contador, ronda }) => {
             setTurno(turno);
@@ -122,15 +124,32 @@ function Mesa({ setCodigoMesa, setNumMesa, setUsername, setCurrentPage, username
         const handleFinPartida = ({ ranking }) => {
             setRanking(ranking);
             setFinPartida(true);
+            // para la el componente tabla final
+            setContadorReinicio(10)
+            if (intervaloReinicio.current) {
+                clearInterval(intervaloReinicio.current);
+            }
+            intervaloReinicio.current = setInterval(() => {
+                setContadorReinicio((prev) => {
+                    if (prev <= 1) {
+                        clearInterval(intervaloReinicio.current);
+                        intervaloReinicio.current = null;
+                        return 0;
+                    }
+                    return prev - 1;
+                });
+            }, 1000);
             setTimeout(() => {
                 setFinPartida(false);
             }, 10000);
         };
         socket.on("fin_partida", handleFinPartida);
-
         return () => {
             socket.off("estado_turno", handleEstadoTurno);
             socket.off("fin_partida", handleFinPartida);
+            if (intervaloReinicio.current) {
+                clearInterval(intervaloReinicio.current);
+            }
         };
     }, []);
 
@@ -167,14 +186,32 @@ function Mesa({ setCodigoMesa, setNumMesa, setUsername, setCurrentPage, username
                     </div>
                     {finPartida && (
                         <div className="bg-black p-6 rounded-lg shadow-xl text-center">
-                            <h2 className="text-2xl font-bold mb-4">Tabla Final</h2>
-                            <p>Partida finalizada.</p>
+                            <h2 className="text-2xl font-bold mb-4">Partida finalizada</h2>
+                            {/* Mostrar ganadores */}
+                            {ranking.length > 0 && (
+                                <>
+                                    <p className="mt-2 font-semibold text-lg">Ganador{ranking.filter(j => j.puntos === ranking[0].puntos).length > 1 ? 'es' : ''}:</p>
+                                    <ul className="mb-4">
+                                        {ranking
+                                            .filter(j => j.puntos === ranking[0].puntos)
+                                            .map((j, i) => (
+                                                <li key={i} className="text-white font-bold">
+                                                    🏆 {j.username} - {j.puntos} puntos
+                                                </li>
+                                            ))}
+                                    </ul>
+                                </>
+                            )}
+                            {/* Mostrar tabla completa */}
+                            <p>Tabla final de puntos</p>
                             <ul>
                                 {ranking.map((j, i) => (
-                                    <li key={i}>{j.username} - {j.puntos}</li>
+                                    <li key={i}>
+                                        {i + 1}. {j.username} - {j.puntos}
+                                    </li>
                                 ))}
                             </ul>
-                            <p className="mt-4 text-sm text-gray-600">Reiniciando partida...</p>
+                            <p className="mt-4 text-sm text-gray-300">Reiniciando partida en {contadorReinicio} segundos.</p>
                         </div>
                     )}
                 </div>
