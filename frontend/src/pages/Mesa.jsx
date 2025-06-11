@@ -10,6 +10,16 @@ function Mesa({ setCodigoMesa, setNumMesa, setUsername, setCurrentPage, username
     // Chat
     const [mensajes, setMensajes] = useState([]);
     const [mensajeActual, setMensajeActual] = useState("");
+    // Turnos
+    const [turno, setTurno] = useState();
+    const [indiceTurno, setIndiceTurno] = useState(0);
+
+    // Jugador actual en turno
+    useEffect(() => {
+        if (jugadores.length > 0) {
+            setTurno(jugadores[indiceTurno]);
+        }
+    }, [indiceTurno, jugadores]);
 
     // Regresar al menú principal
     const handleMenu = () => {
@@ -80,6 +90,24 @@ function Mesa({ setCodigoMesa, setNumMesa, setUsername, setCurrentPage, username
             setMensajeActual(""); // limpiar campo
         }
     };
+    //contador
+    const [contadorTurno, setContadorTurno] = useState(10);
+    useEffect(() => {
+        if (jugadores.length === 0) return;
+
+        const intervalo = setInterval(() => {
+            setContadorTurno(prev => {
+                if (prev === 1) {
+                    // Avanzar turno cuando llegue a 0
+                    setIndiceTurno(prevIndice => (prevIndice + 1) % jugadores.length);
+                    return 10; // Reiniciar contador
+                }
+                return prev - 1;
+            });
+        }, 1000); // cada segundo
+
+        return () => clearInterval(intervalo);
+    }, [jugadores]);
 
     return (
         <div style={{ backgroundColor: '#336767', height: '100dvh' }} className="overflow-auto flex flex-col items-center">
@@ -102,9 +130,15 @@ function Mesa({ setCodigoMesa, setNumMesa, setUsername, setCurrentPage, username
                 </div>
 
                 {/* Campo de Dibujo */}
-                <div className="border-3 h-[605px] w-[600px] text-white p-2 font-bold">
+                <div className="border-3 h-[605px] w-[600px] text-white p-2">
                     MESA N° {numMesa} <br />
                     CÓDIGO: {codigoMesa}
+                    <div className=" text-white text-lg">
+                        {turno ? `Turno de ${turno.username}` : "Esperando jugadores..."}
+                    </div>
+                    <div className=" text-white text-lg">
+                        Próximo turno en {contadorTurno} segundos
+                    </div>
                 </div>
 
                 {/* Chat */}
