@@ -91,23 +91,17 @@ function Mesa({ setCodigoMesa, setNumMesa, setUsername, setCurrentPage, username
         }
     };
     //contador
-    const [contadorTurno, setContadorTurno] = useState(10);
+    const [contadorTurno, setContadorTurno] = useState(100);
     useEffect(() => {
-        if (jugadores.length === 0) return;
-
-        const intervalo = setInterval(() => {
-            setContadorTurno(prev => {
-                if (prev === 1) {
-                    // Avanzar turno cuando llegue a 0
-                    setIndiceTurno(prevIndice => (prevIndice + 1) % jugadores.length);
-                    return 10; // Reiniciar contador
-                }
-                return prev - 1;
-            });
-        }, 1000); // cada segundo
-
-        return () => clearInterval(intervalo);
-    }, [jugadores]);
+        const handleEstadoTurno = ({ turno, contador }) => {
+            setTurno(turno);
+            setContadorTurno(contador);
+        };
+        socket.on("estado_turno", handleEstadoTurno);
+        return () => {
+            socket.off("estado_turno", handleEstadoTurno);
+        };
+    }, []);
 
     return (
         <div style={{ backgroundColor: '#336767', height: '100dvh' }} className="overflow-auto flex flex-col items-center">

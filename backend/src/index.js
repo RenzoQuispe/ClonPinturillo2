@@ -15,6 +15,29 @@ function generarMesaId() {
   } while (salas[id]);
   return id;
 }
+// Función que controla el contador y los turnos de una sala
+function iniciarTurnos(mesaId) {
+  const sala = salas[mesaId];
+  if (!sala) return;
+
+  sala.intervaloTurno = setInterval(() => {
+    if (!sala.jugadores.length) return;
+
+    sala.contador--;
+
+    if (sala.contador <= 0) {
+      sala.indiceTurno = (sala.indiceTurno + 1) % sala.jugadores.length;
+      sala.contador = 100;
+    }
+
+    // Emitir a todos los clientes el estado actual del turno
+    io.to(mesaId).emit("estado_turno", {
+      turno: sala.jugadores[sala.indiceTurno],
+      contador: sala.contador,
+    });
+
+  }, 1000);
+}
 
 io.on("connection", (socket) => {
 
@@ -33,13 +56,17 @@ io.on("connection", (socket) => {
     salas[mesaId] = {
       codigo: roomCode,
       jugadores: [{ id: socket.id, username }],
+      indiceTurno: 0,
+      contador: 100,
+      intervaloTurno: null,
     };
+
     socket.join(mesaId);
     console.log(`${username} creo la sala ${mesaId} con contraseña ${roomCode}`);
-    console.log(JSON.stringify(salas, null, 2));
-    const sala = salas[mesaId];
-    io.to(mesaId).emit("actualizar_jugadores", sala.jugadores);
+    io.to(mesaId).emit("actualizar_jugadores", salas[mesaId].jugadores);
     socket.emit('sala_creada', { mesaId, roomCode });
+
+    iniciarTurnos(mesaId); // Iniciar control de turnos
   });
 
   // Unirse a sala
@@ -83,6 +110,7 @@ io.on("connection", (socket) => {
         if (sala.jugadores.length === 0) {
           // Notificar que la sala fue eliminada
           io.to(mesaId).emit("sala_eliminada");
+          clearInterval(sala.intervaloTurno);
           delete salas[mesaId];
           console.log(`Sala ${mesaId} eliminada por estar vacía`);
         } else {
