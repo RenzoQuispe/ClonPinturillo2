@@ -91,7 +91,7 @@ function Mesa({ setCodigoMesa, setNumMesa, setUsername, setCurrentPage, username
         }
     };
     //contador
-    const [contadorTurno, setContadorTurno] = useState(100);
+    const [contadorTurno, setContadorTurno] = useState(10);
     useEffect(() => {
         const handleEstadoTurno = ({ turno, contador }) => {
             setTurno(turno);
@@ -100,6 +100,30 @@ function Mesa({ setCodigoMesa, setNumMesa, setUsername, setCurrentPage, username
         socket.on("estado_turno", handleEstadoTurno);
         return () => {
             socket.off("estado_turno", handleEstadoTurno);
+        };
+    }, []);
+    // Rondas y fin de la partida
+    const [ronda, setRonda] = useState(1);
+    const [finPartida, setFinPartida] = useState(false);
+    useEffect(() => {
+        const handleEstadoTurno = ({ turno, contador, ronda }) => {
+            setTurno(turno);
+            setContadorTurno(contador);
+            setRonda(ronda);
+        };
+        socket.on("estado_turno", handleEstadoTurno);
+
+        const handleFinPartida = () => {
+            setFinPartida(true);
+            setTimeout(() => {
+                setFinPartida(false); // oculta la tabla
+            }, 10000);
+        };
+        socket.on("fin_partida", handleFinPartida);
+
+        return () => {
+            socket.off("estado_turno", handleEstadoTurno);
+            socket.off("fin_partida", handleFinPartida);
         };
     }, []);
 
@@ -126,13 +150,26 @@ function Mesa({ setCodigoMesa, setNumMesa, setUsername, setCurrentPage, username
                 {/* Campo de Dibujo */}
                 <div className="border-3 h-[605px] w-[600px] text-white p-2">
                     MESA N° {numMesa} <br />
-                    CÓDIGO: {codigoMesa}
+                    CÓDIGO: {codigoMesa} <br />
+                    Ronda: {ronda}/3
                     <div className=" text-white text-lg">
                         {turno ? `Turno de ${turno.username}` : "Esperando jugadores..."}
                     </div>
                     <div className=" text-white text-lg">
                         Próximo turno en {contadorTurno} segundos
                     </div>
+                    {finPartida && (
+                        <div className="bg-black p-6 rounded-lg shadow-xl text-center">
+                            <h2 className="text-2xl font-bold mb-4">Tabla Final</h2>
+                            <p>Rondas finalizadas.</p>
+                            <ul>
+                                {jugadores.map((j, i) => (
+                                    <li key={i}>{j.username}</li>
+                                ))}
+                            </ul>
+                            <p className="mt-4 text-sm text-gray-600">Nueva partida comenzara pronto...</p>
+                        </div>
+                    )}
                 </div>
 
                 {/* Chat */}

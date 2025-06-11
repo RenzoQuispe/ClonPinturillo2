@@ -20,20 +20,51 @@ function iniciarTurnos(mesaId) {
   const sala = salas[mesaId];
   if (!sala) return;
 
+  // Inicializa si no existen
+  sala.ronda = sala.ronda || 1;
+  sala.indiceTurno = sala.indiceTurno || 0;
+  sala.contador = 10;
+
   sala.intervaloTurno = setInterval(() => {
     if (!sala.jugadores.length) return;
 
     sala.contador--;
 
     if (sala.contador <= 0) {
-      sala.indiceTurno = (sala.indiceTurno + 1) % sala.jugadores.length;
-      sala.contador = 100;
+      sala.indiceTurno++;
+
+      if (sala.indiceTurno >= sala.jugadores.length) {
+        sala.indiceTurno = 0;
+        sala.ronda++;
+
+        if (sala.ronda > 3) {
+          clearInterval(sala.intervaloTurno);
+          sala.intervaloTurno = null;
+
+          // Emitimos evento de fin de partida
+          io.to(mesaId).emit("fin_partida");
+
+          // Reinicio automático tras 10 segundos
+          setTimeout(() => {
+            sala.ronda = 1;
+            sala.indiceTurno = 0;
+            sala.contador = 10;
+
+            iniciarTurnos(mesaId);
+          }, 10000);
+
+          return;
+        }
+      }
+
+      sala.contador = 10;
     }
 
-    // Emitir a todos los clientes el estado actual del turno
+    // Emitimos estado del turno a todos los clientes
     io.to(mesaId).emit("estado_turno", {
       turno: sala.jugadores[sala.indiceTurno],
       contador: sala.contador,
+      ronda: sala.ronda
     });
 
   }, 1000);
@@ -57,8 +88,10 @@ io.on("connection", (socket) => {
       codigo: roomCode,
       jugadores: [{ id: socket.id, username }],
       indiceTurno: 0,
-      contador: 100,
+      contador: 10,
       intervaloTurno: null,
+      ronda: 1,
+      partidasTerminadas: 0,
     };
 
     socket.join(mesaId);
