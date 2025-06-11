@@ -86,7 +86,7 @@ io.on("connection", (socket) => {
     const mesaId = generarMesaId().toString();
     salas[mesaId] = {
       codigo: roomCode,
-      jugadores: [{ id: socket.id, username }],
+      jugadores: [{ id: socket.id, username, puntos: 0 }],
       indiceTurno: 0,
       contador: 10,
       intervaloTurno: null,
@@ -110,7 +110,7 @@ io.on("connection", (socket) => {
 
     const existeJugador = sala.jugadores.some(j => j.id === socket.id);
     if (!existeJugador) {
-      sala.jugadores.push({ id: socket.id, username });
+      sala.jugadores.push({ id: socket.id, username, puntos: 0 });
       console.log(`${username} se unió a la sala ${numMesa}`);
     }
 
@@ -129,6 +129,21 @@ io.on("connection", (socket) => {
   socket.on("enviar_mensaje", ({ numMesa, mensaje }) => {
     io.to(numMesa).emit("nuevo_mensaje", mensaje);
   });
+  // actualizar puntos
+  socket.on("actualizar_puntos", ({ mesaId, puntosGanados }) => {
+    const sala = salas[mesaId];
+    if (!sala) return;
+  
+    const jugador = sala.jugadores.find(j => j.id === socket.id);
+    if (jugador) {
+      jugador.puntos += puntosGanados;
+      console.log(`${jugador.username} ganó ${puntosGanados} puntos en la sala ${mesaId}. Total: ${jugador.puntos}`);
+  
+      // Enviar actualización a todos los clientes de la sala
+      io.to(mesaId).emit("actualizar_jugadores", sala.jugadores);
+    }
+  });
+  
 
   // Desconexión
   socket.on("disconnect", () => {

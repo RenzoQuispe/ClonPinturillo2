@@ -87,7 +87,12 @@ function Mesa({ setCodigoMesa, setNumMesa, setUsername, setCurrentPage, username
         if (mensajeActual.trim() !== "") {
             const nuevoMensaje = { username, texto: mensajeActual };
             socket.emit("enviar_mensaje", { numMesa, mensaje: nuevoMensaje });
-            setMensajeActual(""); // limpiar campo
+            // actualizar puntos-todo mensaje enviado al chat suma puntos
+            socket.emit("actualizar_puntos", {
+                mesaId: numMesa,
+                puntosGanados: contadorTurno
+            });
+            setMensajeActual("");
         }
     };
     //contador
@@ -138,7 +143,7 @@ function Mesa({ setCodigoMesa, setNumMesa, setUsername, setCurrentPage, username
                         {jugadores.length > 0 ? (
                             jugadores.map((jugador) => (
                                 <li key={jugador.id} className="text-lg">
-                                    {jugador.username}
+                                    {jugador.username} - {jugador.puntos} puntos
                                 </li>
                             ))
                         ) : (
