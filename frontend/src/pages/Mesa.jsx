@@ -7,6 +7,7 @@ function Mesa({ setCodigoMesa, setNumMesa, setUsername, setCurrentPage, username
 
     // Lista de Jugadores
     const [jugadores, setJugadores] = useState([]);
+    const [ranking, setRanking] = useState([]);
     // Chat
     const [mensajes, setMensajes] = useState([]);
     const [mensajeActual, setMensajeActual] = useState("");
@@ -87,7 +88,7 @@ function Mesa({ setCodigoMesa, setNumMesa, setUsername, setCurrentPage, username
         if (mensajeActual.trim() !== "") {
             const nuevoMensaje = { username, texto: mensajeActual };
             socket.emit("enviar_mensaje", { numMesa, mensaje: nuevoMensaje });
-            // actualizar puntos-todo mensaje enviado al chat suma puntos
+            // actualizar puntos-todo mensaje enviado al chat suma puntos-supones respuesta correctas multiples
             socket.emit("actualizar_puntos", {
                 mesaId: numMesa,
                 puntosGanados: contadorTurno
@@ -118,10 +119,11 @@ function Mesa({ setCodigoMesa, setNumMesa, setUsername, setCurrentPage, username
         };
         socket.on("estado_turno", handleEstadoTurno);
 
-        const handleFinPartida = () => {
+        const handleFinPartida = ({ ranking }) => {
+            setRanking(ranking);
             setFinPartida(true);
             setTimeout(() => {
-                setFinPartida(false); // oculta la tabla
+                setFinPartida(false);
             }, 10000);
         };
         socket.on("fin_partida", handleFinPartida);
@@ -166,13 +168,13 @@ function Mesa({ setCodigoMesa, setNumMesa, setUsername, setCurrentPage, username
                     {finPartida && (
                         <div className="bg-black p-6 rounded-lg shadow-xl text-center">
                             <h2 className="text-2xl font-bold mb-4">Tabla Final</h2>
-                            <p>Rondas finalizadas.</p>
+                            <p>Partida finalizada.</p>
                             <ul>
-                                {jugadores.map((j, i) => (
-                                    <li key={i}>{j.username}</li>
+                                {ranking.map((j, i) => (
+                                    <li key={i}>{j.username} - {j.puntos}</li>
                                 ))}
                             </ul>
-                            <p className="mt-4 text-sm text-gray-600">Nueva partida comenzara pronto...</p>
+                            <p className="mt-4 text-sm text-gray-600">Reiniciando partida...</p>
                         </div>
                     )}
                 </div>

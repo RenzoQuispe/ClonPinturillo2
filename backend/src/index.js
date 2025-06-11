@@ -42,7 +42,12 @@ function iniciarTurnos(mesaId) {
           sala.intervaloTurno = null;
 
           // Emitimos evento de fin de partida
-          io.to(mesaId).emit("fin_partida");
+          const ranking = [...sala.jugadores].sort((a, b) => b.puntos - a.puntos);
+          io.to(mesaId).emit("fin_partida", { ranking });
+
+          // reiniciamos puntos
+          sala.jugadores.forEach(j => j.puntos = 0);
+          io.to(mesaId).emit("actualizar_jugadores", sala.jugadores);
 
           // Reinicio automático tras 10 segundos
           setTimeout(() => {
@@ -133,17 +138,17 @@ io.on("connection", (socket) => {
   socket.on("actualizar_puntos", ({ mesaId, puntosGanados }) => {
     const sala = salas[mesaId];
     if (!sala) return;
-  
+
     const jugador = sala.jugadores.find(j => j.id === socket.id);
     if (jugador) {
       jugador.puntos += puntosGanados;
       console.log(`${jugador.username} ganó ${puntosGanados} puntos en la sala ${mesaId}. Total: ${jugador.puntos}`);
-  
+
       // Enviar actualización a todos los clientes de la sala
       io.to(mesaId).emit("actualizar_jugadores", sala.jugadores);
     }
   });
-  
+
 
   // Desconexión
   socket.on("disconnect", () => {
