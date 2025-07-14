@@ -135,15 +135,16 @@ io.on("connection", (socket) => {
     io.to(numMesa).emit("nuevo_mensaje", mensaje);
   });
   // actualizar puntos
-  socket.on("actualizar_puntos", ({ mesaId, puntosGanados }) => {
+  socket.on("actualizar_puntos", ({ mesaId, puntosGanados, intentoAdivinar }) => {
     const sala = salas[mesaId];
     if (!sala) return;
 
     const jugador = sala.jugadores.find(j => j.id === socket.id);
     if (jugador) {
-      jugador.puntos += puntosGanados;
-      console.log(`${jugador.username} ganó ${puntosGanados} puntos en la sala ${mesaId}. Total: ${jugador.puntos}`);
-
+      if(sala.palabraActual == intentoAdivinar){
+        jugador.puntos += puntosGanados;
+        console.log(`${jugador.username} ganó ${puntosGanados} puntos en la sala ${mesaId}. Total: ${jugador.puntos}`);
+      }
       // Enviar actualización a todos los clientes de la sala
       io.to(mesaId).emit("actualizar_jugadores", sala.jugadores);
     }

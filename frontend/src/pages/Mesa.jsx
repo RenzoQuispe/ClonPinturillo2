@@ -102,14 +102,14 @@ function Mesa({ setCodigoMesa, setNumMesa, setUsername, setCurrentPage, username
             socket.off("nuevo_mensaje");
         };
     }, []);
-    const enviarMensaje = () => {
+    const enviarMensaje = (mensaje) => {
         if (mensajeActual.trim() !== "") {
             const nuevoMensaje = { username, texto: mensajeActual };
             socket.emit("enviar_mensaje", { numMesa, mensaje: nuevoMensaje });
-            // actualizar puntos-todo mensaje enviado al chat suma puntos-supones respuesta correctas multiples
             socket.emit("actualizar_puntos", {
                 mesaId: numMesa,
-                puntosGanados: contadorTurno
+                puntosGanados: contadorTurno,
+                intentoAdivinar: mensaje,
             });
             setMensajeActual("");
         }
@@ -253,12 +253,12 @@ function Mesa({ setCodigoMesa, setNumMesa, setUsername, setCurrentPage, username
                         <input
                             value={mensajeActual}
                             onChange={(e) => setMensajeActual(e.target.value)}
-                            onKeyDown={(e) => e.key === 'Enter' && enviarMensaje()}
+                            onKeyDown={(e) => e.key === 'Enter' && enviarMensaje(mensajeActual)}
                             placeholder="Escribe un mensaje..."
                             className="flex-1 p-1 rounded-sm text-white border"
                         />
                         <button
-                            onClick={enviarMensaje}
+                            onClick={() => enviarMensaje(mensajeActual)}
                             className="ml-2 px-3 bg-teal-600 text-white font-bold rounded-sm hover:brightness-110"
                         >
                             Enviar
