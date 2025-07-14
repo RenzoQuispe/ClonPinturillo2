@@ -3,6 +3,7 @@ import Footer from "../components/Footer";
 import React, { useEffect, useState, useRef } from "react";
 import socket from "../libs/socket";
 import OpcionesPalabras from "../components/OpcionesPalabras";
+import { Send } from "lucide-react";
 
 function Mesa({ setCodigoMesa, setNumMesa, setUsername, setCurrentPage, username, numMesa, codigoMesa }) {
 
@@ -12,6 +13,10 @@ function Mesa({ setCodigoMesa, setNumMesa, setUsername, setCurrentPage, username
     // Chat
     const [mensajes, setMensajes] = useState([]);
     const [mensajeActual, setMensajeActual] = useState("");
+    const messagesEndRef = useRef(null);
+    useEffect(() => { // scroll automatico
+        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    }, [mensajes]);
     // Turnos
     const [turno, setTurno] = useState();
     const [indiceTurno, setIndiceTurno] = useState(0);
@@ -238,15 +243,22 @@ function Mesa({ setCodigoMesa, setNumMesa, setUsername, setCurrentPage, username
                 </div>
 
                 {/* Chat */}
-                <div className="border-3 h-[605px] w-[400px] text-white p-2 flex flex-col justify-between">
-                    <div className="overflow-y-auto flex-1">
-                        <h2 className="text-xl font-bold mb-2">CHAT</h2>
-                        <ul className="space-y-1">
-                            {mensajes.map((msg, idx) => (
-                                <li key={idx} className="text-white text-sm">
-                                    <span className="font-bold">{msg.username}: </span>{msg.texto}
-                                </li>
-                            ))}
+                <div style={{ border: "5px solid #a09c34" }} className="bg-gray-200 rounded-3xl h-[605px] w-[400px] text-black p-2 flex flex-col justify-between">
+                    <div className="overflow-y-auto flex-1 text-black">
+                        <ul className="space-y-1 text-black">
+                            {mensajes.map((msg, idx) => {
+                                const jugador = jugadores.find(j => j.username === msg.username);
+                                const color = jugador ? jugador.color : "#000000";
+                                return (
+                                    <li key={idx} className="text-2xl">
+                                        <span className="font-bold" style={{ color }}>
+                                            {msg.username}:
+                                        </span>{" "}
+                                        {msg.texto}
+                                    </li>
+                                );
+                            })}
+                            <div ref={messagesEndRef} />
                         </ul>
                     </div>
                     <div className="mt-2 flex">
@@ -254,14 +266,14 @@ function Mesa({ setCodigoMesa, setNumMesa, setUsername, setCurrentPage, username
                             value={mensajeActual}
                             onChange={(e) => setMensajeActual(e.target.value)}
                             onKeyDown={(e) => e.key === 'Enter' && enviarMensaje(mensajeActual)}
-                            placeholder="Escribe un mensaje..."
-                            className="flex-1 p-1 rounded-sm text-white border"
+                            className="flex-1 p-1 ml-1 rounded-sm text-black border bg-gray-300"
                         />
                         <button
                             onClick={() => enviarMensaje(mensajeActual)}
-                            className="ml-2 px-3 bg-teal-600 text-white font-bold rounded-sm hover:brightness-110"
+                            style={{ background: "#336767" }}
+                            className="ml-2 px-2 w-[38px] text-white font-bold rounded-sm hover:brightness-110"
                         >
-                            Enviar
+                            <Send size={18} />
                         </button>
                     </div>
                 </div>
