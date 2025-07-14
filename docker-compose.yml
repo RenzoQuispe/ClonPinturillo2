@@ -1,0 +1,25 @@
+version: '3.9'
+
+services:
+  # Contenedor backend
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: backendPinturillo
+    ports: 
+      - "5000:5000"
+    volumes:
+      - ./backend:/app
+    restart: unless-stopped
+  # Contenedor frontend
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: frontendPinturillo
+    ports: 
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app
+    restart: unless-stopped
