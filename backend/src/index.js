@@ -1,6 +1,7 @@
 import { Server } from 'socket.io';
 import express from 'express';
 import http from 'http';
+import { obtenerTresPalabrasAleatorias } from '../db/utils.js';
 
 const app = express();
 const server = http.createServer(app);
@@ -23,16 +24,15 @@ function iniciarTurnos(mesaId) {
   // Inicializa si no existen
   sala.ronda = sala.ronda || 1;
   sala.indiceTurno = sala.indiceTurno || 0;
-  sala.contador = 10;
+  sala.contador = 20;
 
   sala.intervaloTurno = setInterval(() => {
     if (!sala.jugadores.length) return;
 
     sala.contador--;
-
+    //Cambio de turno
     if (sala.contador <= 0) {
       sala.indiceTurno++;
-
       if (sala.indiceTurno >= sala.jugadores.length) {
         sala.indiceTurno = 0;
         sala.ronda++;
@@ -49,20 +49,24 @@ function iniciarTurnos(mesaId) {
           sala.jugadores.forEach(j => j.puntos = 0);
           io.to(mesaId).emit("actualizar_jugadores", sala.jugadores);
 
-          // Reinicio automático tras 10 segundos
+          // Reinicio automático tras 20 segundos
           setTimeout(() => {
             sala.ronda = 1;
             sala.indiceTurno = 0;
-            sala.contador = 10;
+            sala.contador = 20;
 
             iniciarTurnos(mesaId);
-          }, 10000);
+          }, 20000);
 
           return;
         }
       }
+      // emitir opciones al jugador del turno
+      const jugadorDelTurno = sala.jugadores[sala.indiceTurno];
+      const palabras = obtenerTresPalabrasAleatorias();
+      io.to(jugadorDelTurno.id).emit("opciones_palabras", palabras);
 
-      sala.contador = 10;
+      sala.contador = 20;
     }
 
     // Emitimos estado del turno a todos los clientes
@@ -74,18 +78,14 @@ function iniciarTurnos(mesaId) {
 
   }, 1000);
 }
-
 io.on("connection", (socket) => {
-
   console.log('Usuario conectado:', socket.id);
-
   // Verificar existencia de sala
   socket.on("verificar_sala", (numMesa) => {
     if (!salas[numMesa]) {
       socket.emit("sala_eliminada");
     }
   });
-
   // Crear sala
   socket.on("crear_sala", ({ username, roomCode }) => {
     const mesaId = generarMesaId().toString();
@@ -93,10 +93,11 @@ io.on("connection", (socket) => {
       codigo: roomCode,
       jugadores: [{ id: socket.id, username, puntos: 0 }],
       indiceTurno: 0,
-      contador: 10,
+      contador: 20,
       intervaloTurno: null,
       ronda: 1,
       partidasTerminadas: 0,
+      palabraActual: null,
     };
 
     socket.join(mesaId);
@@ -106,7 +107,6 @@ io.on("connection", (socket) => {
 
     iniciarTurnos(mesaId); // Iniciar control de turnos
   });
-
   // Unirse a sala
   socket.on("unirse_sala", ({ username, numMesa, codigoMesa }, callback) => {
     const sala = salas[numMesa];
@@ -148,8 +148,6 @@ io.on("connection", (socket) => {
       io.to(mesaId).emit("actualizar_jugadores", sala.jugadores);
     }
   });
-
-
   // Desconexión
   socket.on("disconnect", () => {
     console.log("Usuario desconectado:", socket.id);
@@ -182,7 +180,17 @@ io.on("connection", (socket) => {
       console.log(`Rooms de este socket:`, [...s.rooms]);
     });
   });
-
+  // Actualizar palabra escogida por el jugador del turno
+  socket.on("palabra_escogida", ({ mesaId, palabra }) => {
+    const sala = salas[mesaId];
+    if (!sala) return;
+  
+    sala.palabraActual = palabra;
+    console.log(`Palabra escogida por ${socket.id} en sala ${mesaId}: ${palabra}`);
+  
+    // Emitir la palabra a todos los jugadores de la sala
+    io.to(mesaId).emit("nueva_palabra", { palabra });
+  });
 });
 
 server.listen(5000, () => {
