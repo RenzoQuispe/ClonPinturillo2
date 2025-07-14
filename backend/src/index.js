@@ -89,9 +89,10 @@ io.on("connection", (socket) => {
   // Crear sala
   socket.on("crear_sala", ({ username, roomCode }) => {
     const mesaId = generarMesaId().toString();
+    const colorJugador = COLORES_DISPONIBLES[Math.floor(Math.random() * COLORES_DISPONIBLES.length)];
     salas[mesaId] = {
       codigo: roomCode,
-      jugadores: [{ id: socket.id, username, puntos: 0 }],
+      jugadores: [{ id: socket.id, username, puntos: 0, color: colorJugador }],
       indiceTurno: 0,
       contador: 20,
       intervaloTurno: null,
@@ -115,7 +116,15 @@ io.on("connection", (socket) => {
 
     const existeJugador = sala.jugadores.some(j => j.id === socket.id);
     if (!existeJugador) {
-      sala.jugadores.push({ id: socket.id, username, puntos: 0 });
+      // encuentra colores ya usados
+      const coloresUsados = sala.jugadores.map(j => j.color);
+      const coloresDisponibles = COLORES_DISPONIBLES.filter(c => !coloresUsados.includes(c));
+      // si ya se acabaron, vuelve a usar alguno aleatorio (para evitar bloqueo)
+      const colorJugador = coloresDisponibles.length > 0
+        ? coloresDisponibles[Math.floor(Math.random() * coloresDisponibles.length)]
+        : COLORES_DISPONIBLES[Math.floor(Math.random() * COLORES_DISPONIBLES.length)];
+
+      sala.jugadores.push({ id: socket.id, username, puntos: 0, color: colorJugador  });
       console.log(`${username} se unió a la sala ${numMesa}`);
     }
 
@@ -141,7 +150,7 @@ io.on("connection", (socket) => {
 
     const jugador = sala.jugadores.find(j => j.id === socket.id);
     if (jugador) {
-      if(sala.palabraActual == intentoAdivinar){
+      if (sala.palabraActual == intentoAdivinar) {
         jugador.puntos += puntosGanados;
         console.log(`${jugador.username} ganó ${puntosGanados} puntos en la sala ${mesaId}. Total: ${jugador.puntos}`);
       }
@@ -185,10 +194,10 @@ io.on("connection", (socket) => {
   socket.on("palabra_escogida", ({ mesaId, palabra }) => {
     const sala = salas[mesaId];
     if (!sala) return;
-  
+
     sala.palabraActual = palabra;
     console.log(`Palabra escogida por ${socket.id} en sala ${mesaId}: ${palabra}`);
-  
+
     // Emitir la palabra a todos los jugadores de la sala
     io.to(mesaId).emit("nueva_palabra", { palabra });
   });
@@ -197,3 +206,18 @@ io.on("connection", (socket) => {
 server.listen(5000, () => {
   console.log("Servidor corriendo en puerto 5000");
 });
+
+const COLORES_DISPONIBLES = [
+  "#FF5733", // rojo-naranja
+  "#33FF57", // verde lima
+  "#3357FF", // azul
+  "#F333FF", // fucsia
+  "#FFD333", // amarillo
+  "#33FFF5", // turquesa
+  "#FF33A8", // rosa
+  "#8D33FF", // morado
+  "#FF8C33", // naranja fuerte
+  "#33FF8C", // verde menta
+  "#FF3333", // rojo fuerte
+  "#3333FF"  // azul fuerte
+];
