@@ -2,6 +2,7 @@ import Header from "../components/Header";
 import Footer from "../components/Footer";
 import React, { useEffect, useState, useRef } from "react";
 import socket from "../libs/socket";
+import OpcionesPalabras from "../components/OpcionesPalabras";
 
 function Mesa({ setCodigoMesa, setNumMesa, setUsername, setCurrentPage, username, numMesa, codigoMesa }) {
 
@@ -14,7 +15,24 @@ function Mesa({ setCodigoMesa, setNumMesa, setUsername, setCurrentPage, username
     // Turnos
     const [turno, setTurno] = useState();
     const [indiceTurno, setIndiceTurno] = useState(0);
-
+    // Opciones palabras
+    const [opcionesPalabras, setOpcionesPalabras] = useState([]);
+    // escuchamos el evento opciones_palabras
+    useEffect(() => {
+        const handleOpcionesPalabras = (palabras) => {
+            console.log("Opciones recibidas:", palabras);
+            setOpcionesPalabras(palabras);
+        };
+        socket.on("opciones_palabras", handleOpcionesPalabras);
+        return () => {
+            socket.off("opciones_palabras", handleOpcionesPalabras);
+        };
+    }, []);
+    // emitir palabra escogida
+    const escogerPalabra = (palabra) => {
+        socket.emit("palabra_escogida", { mesaId: numMesa, palabra });
+        setOpcionesPalabras([]); // Ocultar opciones tras escoger
+    };
     // Jugador actual en turno
     useEffect(() => {
         if (jugadores.length > 0) {
@@ -184,6 +202,9 @@ function Mesa({ setCodigoMesa, setNumMesa, setUsername, setCurrentPage, username
                     <div className=" text-white text-lg">
                         Próximo turno en {contadorTurno} segundos
                     </div>
+                    {turno?.id === socket.id && opcionesPalabras.length > 0 && (
+                        <OpcionesPalabras opciones={opcionesPalabras} onEscoger={escogerPalabra} />
+                    )}
                     {finPartida && (
                         <div className="bg-black p-6 rounded-lg shadow-xl text-center">
                             <h2 className="text-2xl font-bold mb-4">Partida finalizada</h2>
