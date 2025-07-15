@@ -147,6 +147,7 @@ function Mesa({ setCodigoMesa, setNumMesa, setUsername, setCurrentPage, username
         const handleFinPartida = ({ ranking }) => {
             setRanking(ranking);
             setFinPartida(true);
+            setMensajes([]); 
             // para la el componente tabla final
             setContadorReinicio(10)
             if (intervaloReinicio.current) {
@@ -164,6 +165,7 @@ function Mesa({ setCodigoMesa, setNumMesa, setUsername, setCurrentPage, username
             }, 1000);
             setTimeout(() => {
                 setFinPartida(false);
+                setMensajes([]);
             }, 10000);
         };
         socket.on("fin_partida", handleFinPartida);
@@ -226,7 +228,7 @@ function Mesa({ setCodigoMesa, setNumMesa, setUsername, setCurrentPage, username
                         </div>
                     </div>
                     {/* Campo de Dibujo */}
-                    <div style={{ border: "5px solid #a09c34", background: "#FFFFFF" }} className="rounded-bl-3xl rounded-br-3xl h-[545px] w-[600px] text-black p-2">
+                    <div style={{ border: "5px solid #a09c34", background: "#FFFFFF" }} className="rounded-bl-3xl rounded-br-3xl h-[545px] w-[600px] text-black">
                         {/* 
                         CÓDIGO: {codigoMesa} <br />
                         <div className=" text-lg">
