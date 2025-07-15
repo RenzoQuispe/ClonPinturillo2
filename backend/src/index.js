@@ -65,13 +65,16 @@ function iniciarTurnos(mesaId) {
       const jugadorDelTurno = sala.jugadores[sala.indiceTurno];
       const palabras = obtenerTresPalabrasAleatorias();
       io.to(jugadorDelTurno.id).emit("opciones_palabras", palabras);
-
+      sala.palabraActual = null;
       sala.contador = 20;
     }
 
     // Emitimos estado del turno a todos los clientes
     io.to(mesaId).emit("estado_turno", {
-      turno: sala.jugadores[sala.indiceTurno],
+      turno: {
+        ...sala.jugadores[sala.indiceTurno],
+        palabra: sala.palabraActual
+      },
       contador: sala.contador,
       ronda: sala.ronda
     });

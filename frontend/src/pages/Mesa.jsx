@@ -147,7 +147,7 @@ function Mesa({ setCodigoMesa, setNumMesa, setUsername, setCurrentPage, username
         const handleFinPartida = ({ ranking }) => {
             setRanking(ranking);
             setFinPartida(true);
-            setMensajes([]); 
+            setMensajes([]);
             // para la el componente tabla final
             setContadorReinicio(10)
             if (intervaloReinicio.current) {
@@ -221,10 +221,17 @@ function Mesa({ setCodigoMesa, setNumMesa, setUsername, setCurrentPage, username
                 <div>
                     {/* Encabezado*/}
                     <div style={{ background: "#d03434" }} className="flex space-x-1 rounded-tl-3xl rounded-tr-3xl h-[80px] w-[600px]">
-                        <div className="border-5 rounded-full w-[70px] h-[65px] bg-gray-200 text-5xl text-center font-bold ml-5 mt-2">{contadorTurno}</div>
-                        <div className="ml-5 mt-2">
+                        <div className="border-5 rounded-full w-[70px] h-[65px] bg-gray-200 text-5xl text-center font-bold ml-3 mt-2">{contadorTurno}</div>
+                        <div className="ml-3 mt-2">
                             <div className="text-2xl font-bold">MESA N° {numMesa} &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; RONDA {ronda}/3</div>
-                            <div style={{ background: "#c03434" }} className="rounded-tl-2xl rounded-tr-2xl h-[40px] w-[410px]"></div>
+                            <div style={{ background: "#c03434" }} className="rounded-tl-2xl rounded-tr-2xl h-[40px] w-[410px] flex items-center justify-center">
+                                {/* Mostrar palabra actual SOLO si es su turno */}
+                                {turno?.id === socket.id && turno?.palabra && (
+                                    <span className="font-bold text-3xl">
+                                        {turno.palabra}
+                                    </span>
+                                )}
+                            </div>
                         </div>
                     </div>
                     {/* Campo de Dibujo */}
