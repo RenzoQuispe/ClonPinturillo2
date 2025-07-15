@@ -181,15 +181,31 @@ function Mesa({ setCodigoMesa, setNumMesa, setUsername, setCurrentPage, username
             <Header />
             <div className="flex justify-between space-x-5 mt-3 mb-3">
                 {/* Tabla de jugadores */}
-                <div className="border-3 h-[605px] w-[200px] text-white p-2 overflow-y-auto">
-                    <h2 className="text-xl font-bold mb-2">JUGADORES:</h2>
+                {/* Tabla de jugadores */}
+                <div style={{ border: "5px solid #a09c34" }} className="bg-gray-200 rounded-3xl h-[605px] w-[200px] text-black p-2 overflow-y-auto">
                     <ul>
                         {jugadores.length > 0 ? (
-                            jugadores.map((jugador) => (
-                                <li key={jugador.id} className="text-lg">
-                                    {jugador.username} - {jugador.puntos} puntos
-                                </li>
-                            ))
+                            jugadores
+                                .slice() // copia para no mutar el state
+                                .sort((a, b) => b.puntos - a.puntos)
+                                .map((jugador, index) => {
+                                    const esTurno = turno && turno.id === jugador.id;
+                                    return (
+                                        <div
+                                            key={jugador.id}
+                                            className={`flex space-x-1 h-[65px]  text-lg ${esTurno ? "font-bold" : "" }` }
+                                            style={{ color: esTurno ? "red" : "gray", borderBottom: "1px solid #bbb5b4" }}
+                                        >
+                                            <div className=" font-bold text-6xl">
+                                                {index + 1}
+                                            </div>
+                                            <div>
+                                                <h1 className="text-2xl text-black font-bold">{jugador.puntos}</h1>
+                                                <h2 className="text-2xl font-bold">{jugador.username}</h2>
+                                            </div>
+                                        </div>
+                                    );
+                                })
                         ) : (
                             <li className="text-lg">No hay jugadores en esta sala.</li>
                         )}
