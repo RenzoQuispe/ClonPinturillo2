@@ -181,7 +181,7 @@ function Mesa({ setCodigoMesa, setNumMesa, setUsername, setCurrentPage, username
             <Header />
             <div className="flex justify-between space-x-5 mt-3 mb-3">
                 {/* Tabla de jugadores */}
-                <div style={{ border: "5px solid #a09c34" }} className="bg-gray-200 rounded-3xl h-[605px] w-[200px] text-black p-2 overflow-y-auto">
+                <div style={{ border: "5px solid #a09c34" }} className="bg-gray-200 rounded-3xl h-[625px] w-[200px] text-black p-2 overflow-y-auto">
                     <ul>
                         {jugadores.length > 0 ? (
                             jugadores
@@ -215,55 +215,61 @@ function Mesa({ setCodigoMesa, setNumMesa, setUsername, setCurrentPage, username
                         )}
                     </ul>
                 </div>
-
-                {/* Campo de Dibujo */}
-                <div className="border-3 h-[605px] w-[600px] text-white p-2">
-                    MESA N° {numMesa} <br />
-                    CÓDIGO: {codigoMesa} <br />
-                    Ronda: {ronda}/3
-                    <div className=" text-white text-lg">
-                        {turno ? `Turno de ${turno.username}` : "Esperando jugadores..."}
-                    </div>
-                    <div className=" text-white text-lg">
-                        Próximo turno en {contadorTurno} segundos
-                    </div>
-                    {turno?.id === socket.id && opcionesPalabras.length > 0 && (
-                        <OpcionesPalabras opciones={opcionesPalabras} onEscoger={escogerPalabra} />
-                    )}
-                    {finPartida && (
-                        <div className="bg-black p-6 rounded-lg shadow-xl text-center">
-                            <h2 className="text-2xl font-bold mb-4">Partida finalizada</h2>
-                            {/* Mostrar ganadores */}
-                            {ranking.length > 0 && (
-                                <>
-                                    <p className="mt-2 font-semibold text-lg">Ganador{ranking.filter(j => j.puntos === ranking[0].puntos).length > 1 ? 'es' : ''}:</p>
-                                    <ul className="mb-4">
-                                        {ranking
-                                            .filter(j => j.puntos === ranking[0].puntos)
-                                            .map((j, i) => (
-                                                <li key={i} className="text-white font-bold">
-                                                    🏆 {j.username} - {j.puntos} puntos
-                                                </li>
-                                            ))}
-                                    </ul>
-                                </>
-                            )}
-                            {/* Mostrar tabla completa */}
-                            <p>Tabla final de puntos</p>
-                            <ul>
-                                {ranking.map((j, i) => (
-                                    <li key={i}>
-                                        {i + 1}. {j.username} - {j.puntos}
-                                    </li>
-                                ))}
-                            </ul>
-                            <p className="mt-4 text-sm text-gray-300">Reiniciando partida en {contadorReinicio} segundos.</p>
+                {/* Componente del medio */}
+                <div>
+                    {/* Encabezado*/}
+                    <div style={{ background: "#d03434" }} className="flex space-x-1 rounded-tl-3xl rounded-tr-3xl h-[80px] w-[600px]">
+                        <div className="border-5 rounded-full w-[70px] h-[65px] bg-gray-200 text-5xl text-center font-bold ml-5 mt-2">{contadorTurno}</div>
+                        <div className="ml-5 mt-2">
+                            <div className="text-2xl font-bold">MESA N° {numMesa} &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; RONDA {ronda}/3</div>
+                            <div style={{ background: "#c03434" }} className="rounded-tl-2xl rounded-tr-2xl h-[40px] w-[410px]"></div>
                         </div>
-                    )}
+                    </div>
+                    {/* Campo de Dibujo */}
+                    <div style={{ border: "5px solid #a09c34", background: "#FFFFFF" }} className="rounded-bl-3xl rounded-br-3xl h-[545px] w-[600px] text-black p-2">
+                        {/* 
+                        CÓDIGO: {codigoMesa} <br />
+                        <div className=" text-lg">
+                            {turno ? `Turno de ${turno.username}` : "Esperando jugadores..."}
+                        </div>
+                        */}
+                        {turno?.id === socket.id && opcionesPalabras.length > 0 && (
+                            <OpcionesPalabras opciones={opcionesPalabras} onEscoger={escogerPalabra} />
+                        )}
+                        {finPartida && (
+                            <div className="bg-black p-6 rounded-lg shadow-xl text-center">
+                                <h2 className="text-2xl font-bold mb-4">Partida finalizada</h2>
+                                {/* Mostrar ganadores */}
+                                {ranking.length > 0 && (
+                                    <>
+                                        <p className="mt-2 font-semibold text-lg">Ganador{ranking.filter(j => j.puntos === ranking[0].puntos).length > 1 ? 'es' : ''}:</p>
+                                        <ul className="mb-4">
+                                            {ranking
+                                                .filter(j => j.puntos === ranking[0].puntos)
+                                                .map((j, i) => (
+                                                    <li key={i} className="text-white font-bold">
+                                                        🏆 {j.username} - {j.puntos} puntos
+                                                    </li>
+                                                ))}
+                                        </ul>
+                                    </>
+                                )}
+                                {/* Mostrar tabla completa */}
+                                <p>Tabla final de puntos</p>
+                                <ul>
+                                    {ranking.map((j, i) => (
+                                        <li key={i}>
+                                            {i + 1}. {j.username} - {j.puntos}
+                                        </li>
+                                    ))}
+                                </ul>
+                                <p className="mt-4 text-sm text-gray-300">Reiniciando partida en {contadorReinicio} segundos.</p>
+                            </div>
+                        )}
+                    </div>
                 </div>
-
                 {/* Chat */}
-                <div style={{ border: "5px solid #a09c34" }} className="bg-gray-200 rounded-3xl h-[605px] w-[400px] text-black p-2 flex flex-col justify-between">
+                <div style={{ border: "5px solid #a09c34" }} className="bg-gray-200 rounded-3xl h-[625px] w-[400px] text-black p-2 flex flex-col justify-between">
                     <div className="overflow-y-auto flex-1 text-black">
                         <ul className="space-y-1 text-black">
                             {mensajes.map((msg, idx) => {
