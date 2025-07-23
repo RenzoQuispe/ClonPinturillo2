@@ -286,10 +286,19 @@ function Mesa({ setCodigoMesa, setNumMesa, setUsername, setCurrentPage, username
                                 const color = jugador ? jugador.color : "#000000";
                                 return (
                                     <li key={idx} className="text-2xl">
-                                        <span className="font-bold" style={{ color }}>
-                                            {msg.username}:
-                                        </span>{" "}
-                                        {msg.texto}
+                                        {msg.texto.includes("ha acertado la palabra") ? (
+                                            <span style={{ color: "#e06434", fontWeight: "bold", display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                                                <img src="/adivino_palabra_chat.png" alt="Adivinó" className="w-7 h-7" />
+                                                {msg.texto}
+                                            </span>
+                                        ) : (
+                                            <>
+                                                <span className="font-bold" style={{ color }}>
+                                                    {msg.username}:
+                                                </span>{" "}
+                                                {msg.texto}
+                                            </>
+                                        )}
                                     </li>
                                 );
                             })}

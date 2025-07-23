@@ -205,7 +205,7 @@ io.on("connection", (socket) => {
         jugador.puntos += puntosGanados;
         jugador.ya_adivino = true;
         io.to(mesaId).emit("nuevo_mensaje", {
-          texto: `${jugador.username} adivinó la palabra`,
+          texto: `${jugador.username} ha acertado la palabra`,
         });
         console.log(`${jugador.username} ganó ${puntosGanados} puntos en la sala ${mesaId}. Total: ${jugador.puntos}`);
       }
