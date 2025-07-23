@@ -101,13 +101,32 @@ function Mesa({ setCodigoMesa, setNumMesa, setUsername, setCurrentPage, username
     }, []);
     const enviarMensaje = (mensaje) => {
         if (mensajeActual.trim() !== "") {
+            // anti spoiler
+            const textoLimpio = mensajeActual.trim().toLowerCase();
+            if (turno?.id === socket.id && turno?.palabra && textoLimpio.includes(turno.palabra.toLowerCase())) {
+                alert("No puedes escribir la palabra actual.");
+                setMensajeActual("");
+                return;
+            }
+
             const nuevoMensaje = { username, texto: mensajeActual };
             socket.emit("enviar_mensaje", { numMesa, mensaje: nuevoMensaje });
-            socket.emit("actualizar_puntos", {
-                mesaId: numMesa,
-                puntosGanados: contadorTurno,
-                intentoAdivinar: mensaje,
-            });
+            // solo puede sumar puntos si no es el turno de este jugador
+            if (turno?.id !== socket.id) {
+                socket.emit("actualizar_puntos", {
+                    mesaId: numMesa,
+                    puntosGanados: contadorTurno,
+                    intentoAdivinar: mensaje,
+                });
+                if (turno?.palabra && textoLimpio === turno.palabra.toLowerCase()) {
+                    socket.emit("enviar_mensaje", {
+                        numMesa,
+                        mensaje: {
+                            texto: `${username} adivinó la palabra`,
+                        },
+                    });
+                }
+            }
             setMensajeActual("");
         }
     };
@@ -217,12 +236,15 @@ function Mesa({ setCodigoMesa, setNumMesa, setUsername, setCurrentPage, username
                         <div className="ml-3 mt-2">
                             <div className="text-2xl font-bold">MESA N° {numMesa} &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; RONDA {ronda}/3</div>
                             <div style={{ background: "#c03434" }} className="rounded-tl-2xl rounded-tr-2xl h-[40px] w-[410px] flex items-center justify-center">
-                                {/* Mostrar palabra actual SOLO si es su turno */}
-                                {turno?.id === socket.id && turno?.palabra && (
+                                {/* Mostrar palabra actual SOLO si es su turno, si no mostrar palabra escondida */}
+                                {turno?.id === socket.id && turno?.palabra ? (
                                     <span className="font-bold text-3xl">
                                         {turno.palabra}
                                     </span>
-                                )}
+                                ) : (
+                                    <span className="text-white">Mostrar palabra escondida progresivamente ...</span>
+                                )
+                                }
                             </div>
                         </div>
                     </div>

@@ -184,6 +184,14 @@ io.on("connection", (socket) => {
   });
   // Para el chat en tiempo real
   socket.on("enviar_mensaje", ({ numMesa, mensaje }) => {
+    const sala = salas[numMesa];
+    if (!sala) return;
+    const palabra = sala.palabraActual?.toLowerCase();
+    const texto = mensaje.texto?.toLowerCase();
+    // anti spoiler
+    if (palabra && texto == palabra) {
+      return;
+    }
     io.to(numMesa).emit("nuevo_mensaje", mensaje);
   });
   // actualizar puntos
