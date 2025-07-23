@@ -17,6 +17,18 @@ function Mesa({ setCodigoMesa, setNumMesa, setUsername, setCurrentPage, username
     useEffect(() => { // scroll automatico
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }, [mensajes]);
+    // cursor
+    const [CursorColor, setCursorColor] = useState("azul")
+    const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+    const [MostrarCustomCursor, setMostrarCustomCursor] = useState(false);
+    useEffect(() => {
+        const handleMouseMove = (e) => {
+            setMousePos({ x: e.clientX, y: e.clientY });
+        };
+
+        document.addEventListener('mousemove', handleMouseMove);
+        return () => document.removeEventListener('mousemove', handleMouseMove);
+    }, []);
     // Turnos
     const [turno, setTurno] = useState();
     // Opciones palabras
@@ -241,7 +253,25 @@ function Mesa({ setCodigoMesa, setNumMesa, setUsername, setCurrentPage, username
                         </div>
                     </div>
                     {/* Campo de Dibujo */}
-                    <div style={{ border: "5px solid #a09c34", background: "#FFFFFF" }} className="rounded-bl-3xl rounded-br-3xl h-[545px] w-[600px] text-black">
+                    <div
+                        style={{ cursor: (MostrarCustomCursor && turno?.id === socket.id) ? 'none' : 'default', border: "5px solid #a09c34", background: "#FFFFFF" }}
+                        className="rounded-bl-3xl rounded-br-3xl h-[545px] w-[600px] text-black"
+                        onMouseEnter={() => setMostrarCustomCursor(true)}
+                        onMouseLeave={() => setMostrarCustomCursor(false)}
+                    >
+                        {(MostrarCustomCursor && turno?.id == socket.id) ? (
+                            <img
+                                src={`/lapiz/${CursorColor}.png`}
+                                className="fixed pointer-events-none z-50"
+                                style={{
+                                    left: mousePos.x - 5,
+                                    top: mousePos.y - 80,
+                                    width: '218px',
+                                    height: '86px'
+                                }}
+                            />
+                        ) : null}
+
                         {opcionesPalabras.length > 0 && (
                             <OpcionesPalabras opciones={opcionesPalabras} onEscoger={escogerPalabra} />
                         )}
