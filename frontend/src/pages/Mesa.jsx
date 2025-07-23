@@ -120,7 +120,7 @@ function Mesa({ setCodigoMesa, setNumMesa, setUsername, setCurrentPage, username
         }
     };
     //contador turnos
-    const [contadorTurno, setContadorTurno] = useState(10);
+    const [contadorTurno, setContadorTurno] = useState(null);
     useEffect(() => {
         const handleEstadoTurno = ({ turno, contador }) => {
             setTurno(turno);

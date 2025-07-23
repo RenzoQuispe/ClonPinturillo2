@@ -25,6 +25,12 @@ function iniciarTurnos(mesaId) {
   sala.ronda = sala.ronda || 1;
   sala.indiceTurno = sala.indiceTurno || 0;
   sala.contador = 20;
+  // emitir opciones al jugador inicial
+  setTimeout(() => {
+    const jugadorInicial = sala.jugadores[sala.indiceTurno];
+    const palabrasIniciales = obtenerTresPalabrasAleatorias();
+    io.to(jugadorInicial.id).emit("opciones_palabras", palabrasIniciales);
+  }, 200); // delay para esperar y asegurar que el lado cliente este listo
 
   sala.intervaloTurno = setInterval(() => {
     if (!sala.jugadores.length) return;
@@ -127,7 +133,7 @@ io.on("connection", (socket) => {
         ? coloresDisponibles[Math.floor(Math.random() * coloresDisponibles.length)]
         : COLORES_DISPONIBLES[Math.floor(Math.random() * COLORES_DISPONIBLES.length)];
 
-      sala.jugadores.push({ id: socket.id, username, puntos: 0, color: colorJugador  });
+      sala.jugadores.push({ id: socket.id, username, puntos: 0, color: colorJugador });
       console.log(`${username} se unió a la sala ${numMesa}`);
     }
 
