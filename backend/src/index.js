@@ -59,7 +59,6 @@ function iniciarTurnos(mesaId) {
       if (sala.indiceTurno >= sala.jugadores.length) {
         sala.indiceTurno = 0;
         sala.ronda++;
-
         if (sala.ronda > 3) {
           clearInterval(sala.intervaloTurno);
           sala.intervaloTurno = null;
@@ -87,6 +86,7 @@ function iniciarTurnos(mesaId) {
 
       sala.palabraActual = null;
       sala.contador = 20;
+      sala.jugadores.forEach(j => j.ya_adivino = false);
 
       const jugadorDelTurno = sala.jugadores[sala.indiceTurno];
 
@@ -134,7 +134,7 @@ io.on("connection", (socket) => {
     const colorJugador = COLORES_DISPONIBLES[Math.floor(Math.random() * COLORES_DISPONIBLES.length)];
     salas[mesaId] = {
       codigo: roomCode,
-      jugadores: [{ id: socket.id, username, puntos: 0, color: colorJugador }],
+      jugadores: [{ id: socket.id, username, puntos: 0, color: colorJugador, ya_adivino: false }],
       indiceTurno: 0,
       contador: 20,
       intervaloTurno: null,
@@ -167,7 +167,7 @@ io.on("connection", (socket) => {
         ? coloresDisponibles[Math.floor(Math.random() * coloresDisponibles.length)]
         : COLORES_DISPONIBLES[Math.floor(Math.random() * COLORES_DISPONIBLES.length)];
 
-      sala.jugadores.push({ id: socket.id, username, puntos: 0, color: colorJugador });
+      sala.jugadores.push({ id: socket.id, username, puntos: 0, color: colorJugador, ya_adivino: false });
       console.log(`${username} se unió a la sala ${numMesa}`);
     }
 
@@ -201,8 +201,12 @@ io.on("connection", (socket) => {
 
     const jugador = sala.jugadores.find(j => j.id === socket.id);
     if (jugador) {
-      if (sala.palabraActual == intentoAdivinar) {
+      if (sala.palabraActual == intentoAdivinar && !jugador.ya_adivino) {
         jugador.puntos += puntosGanados;
+        jugador.ya_adivino = true;
+        io.to(mesaId).emit("nuevo_mensaje", {
+          texto: `${jugador.username} adivinó la palabra`,
+        });
         console.log(`${jugador.username} ganó ${puntosGanados} puntos en la sala ${mesaId}. Total: ${jugador.puntos}`);
       }
       // Enviar actualización a todos los clientes de la sala
@@ -291,6 +295,7 @@ io.on("connection", (socket) => {
           const siguienteJugador = sala.jugadores[sala.indiceTurno];
           sala.palabraActual = null;
           sala.contador = 20;
+          sala.jugadores.forEach(j => j.ya_adivino = false);
           // emitir el estado del turno
           io.to(mesaId).emit("estado_turno", {
             turno: { ...siguienteJugador, palabra: null },

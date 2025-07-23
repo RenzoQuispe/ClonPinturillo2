@@ -118,14 +118,6 @@ function Mesa({ setCodigoMesa, setNumMesa, setUsername, setCurrentPage, username
                     puntosGanados: contadorTurno,
                     intentoAdivinar: mensaje,
                 });
-                if (turno?.palabra && textoLimpio === turno.palabra.toLowerCase()) {
-                    socket.emit("enviar_mensaje", {
-                        numMesa,
-                        mensaje: {
-                            texto: `${username} adivinó la palabra`,
-                        },
-                    });
-                }
             }
             setMensajeActual("");
         }
