@@ -181,6 +181,7 @@ function Mesa({ setCodigoMesa, setNumMesa, setUsername, setCurrentPage, username
             setTimeout(() => {
                 setFinPartida(false);
                 setMensajes([]);
+                setContadorTurno(null)
             }, 10000);
         };
         socket.on("fin_partida", handleFinPartida);
@@ -241,12 +242,20 @@ function Mesa({ setCodigoMesa, setNumMesa, setUsername, setCurrentPage, username
                             <div className="text-2xl font-bold">MESA N° {numMesa} &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; RONDA {ronda}/3</div>
                             <div style={{ background: "#c03434" }} className="rounded-tl-2xl rounded-tr-2xl h-[40px] w-[410px] flex items-center justify-center">
                                 {/* Mostrar palabra actual SOLO si es su turno, si no mostrar palabra escondida */}
-                                {turno?.id === socket.id && turno?.palabra ? (
-                                    <span className="font-bold text-3xl">
-                                        {turno.palabra}
-                                    </span>
+                                {(turno?.id === socket.id && turno?.palabra && !finPartida) ? (
+                                    <>
+                                        <span className="font-bold text-3xl">
+                                            {turno.palabra}
+                                        </span>
+                                    </>
+                                ) : !finPartida ? (
+                                    <>
+                                        <span className="text-white">Mostrar palabra escondida progresivamente ...</span>
+                                    </>
                                 ) : (
-                                    <span className="text-white">Mostrar palabra escondida progresivamente ...</span>
+                                    <>
+                                        <span></span>
+                                    </>
                                 )
                                 }
                             </div>
@@ -254,7 +263,7 @@ function Mesa({ setCodigoMesa, setNumMesa, setUsername, setCurrentPage, username
                     </div>
                     {/* Campo de Dibujo */}
                     <div
-                        style={{ cursor: (MostrarCustomCursor && turno?.id === socket.id) ? 'none' : 'default', border: "5px solid #a09c34", background: "#FFFFFF" }}
+                        style={{ backgroundImage: `url(${finPartida ? "/fondo_tabla_final.png" : "/fondo_campo_dibujo.png"})`, cursor: (MostrarCustomCursor && turno?.id === socket.id) ? 'none' : 'default', border: "5px solid #a09c34", background: "#FFFFFF" }}
                         className="rounded-bl-3xl rounded-br-3xl h-[545px] w-[600px] text-black"
                         onMouseEnter={() => setMostrarCustomCursor(true)}
                         onMouseLeave={() => setMostrarCustomCursor(false)}
@@ -276,33 +285,40 @@ function Mesa({ setCodigoMesa, setNumMesa, setUsername, setCurrentPage, username
                             <OpcionesPalabras opciones={opcionesPalabras} onEscoger={escogerPalabra} />
                         )}
                         {finPartida && (
-                            <div className="bg-black p-6 rounded-lg shadow-xl text-center">
-                                <h2 className="text-2xl font-bold mb-4">Partida finalizada</h2>
+                            <div className="p-6 rounded-lg shadow-xl text-center">
                                 {/* Mostrar ganadores */}
-                                {ranking.length > 0 && (
+                                {ranking.filter(j => j.puntos === ranking[0].puntos).length > 1 ? ( //varios ganadores
                                     <>
-                                        <p className="mt-2 font-semibold text-lg">Ganador{ranking.filter(j => j.puntos === ranking[0].puntos).length > 1 ? 'es' : ''}:</p>
-                                        <ul className="mb-4">
+                                        <p className="text-black text-3xl font-semibold">
+                                            Ganadores:{" "}
                                             {ranking
                                                 .filter(j => j.puntos === ranking[0].puntos)
-                                                .map((j, i) => (
-                                                    <li key={i} className="text-white font-bold">
-                                                        🏆 {j.username} - {j.puntos} puntos
-                                                    </li>
-                                                ))}
-                                        </ul>
+                                                .map(j => j.username)
+                                                .join(" - ")}
+                                        </p>
+                                    </>
+                                ) : ranking.filter(j => j.puntos === ranking[0].puntos).length == 1 ? ( //un ganador
+                                    <>
+                                        <p className=" text-black text-3xl font-semibold">¡Ha ganado {ranking[0].username}!</p>
+                                    </>
+                                ) : (
+                                    <>
+                                        <p className="mt-5 text-black text-3xl">Sala vacia :/</p>
                                     </>
                                 )}
-                                {/* Mostrar tabla completa */}
-                                <p>Tabla final de puntos</p>
+                                {/* tabla puntuaciones finales*/}
                                 <ul>
                                     {ranking.map((j, i) => (
-                                        <li key={i}>
-                                            {i + 1}. {j.username} - {j.puntos}
-                                        </li>
+                                        <div key={i} className="flex space-x-3">
+                                            <div className="bg-gray-900 text-white text-2xl font-semibold rounded-sm mt-3 w-[225px] flex justify-between px-5">
+                                                <span>{i + 1}</span>
+                                                <span>{j.username}</span>
+                                            </div>
+                                            <div className="bg-gray-800 text-white text-2xl font-semibold rounded-sm mt-3 w-[100px]">{j.puntos}</div>
+                                        </div>
                                     ))}
                                 </ul>
-                                <p className="mt-4 text-sm text-gray-300">Reiniciando partida en {contadorReinicio} segundos.</p>
+                                <p className="mt-3 text-sm text-black">Reiniciando partida en {contadorReinicio} segundos.</p>
                             </div>
                         )}
                     </div>
