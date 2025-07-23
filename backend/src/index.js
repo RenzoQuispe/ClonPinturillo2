@@ -36,6 +36,12 @@ function iniciarTurnos(mesaId) {
   setTimeout(() => {
     const palabrasIniciales = obtenerTresPalabrasAleatorias();
     io.to(jugadorInicial.id).emit("opciones_palabras", palabrasIniciales);
+    sala.escogiendoPalabra = true;
+    io.to(mesaId).emit("estado_turno", {
+      turno: { ...jugadorInicial, palabra: null },
+      contador: sala.contador,
+      ronda: sala.ronda
+    });
     // pausar contador mientras el jugador elige su palabra
     if (sala.intervaloTurno) {
       clearInterval(sala.intervaloTurno);
@@ -82,17 +88,19 @@ function iniciarTurnos(mesaId) {
       sala.palabraActual = null;
       sala.contador = 20;
 
+      const jugadorDelTurno = sala.jugadores[sala.indiceTurno];
+
       io.to(mesaId).emit("estado_turno", {
         turno: { ...jugadorDelTurno, palabra: null },
         contador: sala.contador,
         ronda: sala.ronda
       });
+
       // emitir opciones al jugador del turno tras delay
-      const jugadorDelTurno = sala.jugadores[sala.indiceTurno];
       const palabras = obtenerTresPalabrasAleatorias();
       setTimeout(() => {
         io.to(jugadorDelTurno.id).emit("opciones_palabras", palabras);
-
+        sala.escogiendoPalabra = true;
         if (sala.intervaloTurno) {
           clearInterval(sala.intervaloTurno);
           sala.intervaloTurno = null;
@@ -100,15 +108,16 @@ function iniciarTurnos(mesaId) {
       }, 200);
     }
     // Emitimos estado del turno a todos los clientes
-    io.to(mesaId).emit("estado_turno", {
-      turno: {
-        ...sala.jugadores[sala.indiceTurno],
-        palabra: sala.palabraActual
-      },
-      contador: sala.contador,
-      ronda: sala.ronda
-    });
-
+    if (!sala.escogiendoPalabra) {
+      io.to(mesaId).emit("estado_turno", {
+        turno: {
+          ...sala.jugadores[sala.indiceTurno],
+          palabra: sala.palabraActual
+        },
+        contador: sala.contador,
+        ronda: sala.ronda
+      });
+    }
   }, 1000);
 }
 io.on("connection", (socket) => {
@@ -132,6 +141,7 @@ io.on("connection", (socket) => {
       ronda: 1,
       partidasTerminadas: 0,
       palabraActual: null,
+      escogiendoPalabra: false
     };
 
     socket.join(mesaId);
@@ -226,6 +236,7 @@ io.on("connection", (socket) => {
   // Actualizar palabra escogida por el jugador del turno
   socket.on("palabra_escogida", ({ mesaId, palabra }) => {
     const sala = salas[mesaId];
+    sala.escogiendoPalabra = false;
     if (!sala) return;
 
     sala.palabraActual = palabra;
@@ -269,13 +280,19 @@ io.on("connection", (socket) => {
             }
           }
 
-          // Siguiente jugador y entonces enviar palabras y pausar
           const siguienteJugador = sala.jugadores[sala.indiceTurno];
-          const nuevasPalabras = obtenerTresPalabrasAleatorias();
-
-          io.to(siguienteJugador.id).emit("opciones_palabras", nuevasPalabras);
           sala.palabraActual = null;
           sala.contador = 20;
+          // emitir el estado del turno
+          io.to(mesaId).emit("estado_turno", {
+            turno: { ...siguienteJugador, palabra: null },
+            contador: sala.contador,
+            ronda: sala.ronda
+          });
+          // enviar las opciones
+          const nuevasPalabras = obtenerTresPalabrasAleatorias();
+          io.to(siguienteJugador.id).emit("opciones_palabras", nuevasPalabras);
+          sala.escogiendoPalabra = true;
 
           clearInterval(sala.intervaloTurno);
           sala.intervaloTurno = null;

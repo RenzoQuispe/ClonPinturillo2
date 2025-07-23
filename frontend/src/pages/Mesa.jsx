@@ -19,7 +19,6 @@ function Mesa({ setCodigoMesa, setNumMesa, setUsername, setCurrentPage, username
     }, [mensajes]);
     // Turnos
     const [turno, setTurno] = useState();
-    const [indiceTurno, setIndiceTurno] = useState(0);
     // Opciones palabras
     const [opcionesPalabras, setOpcionesPalabras] = useState([]);
     // escuchamos el evento opciones_palabras
@@ -38,13 +37,6 @@ function Mesa({ setCodigoMesa, setNumMesa, setUsername, setCurrentPage, username
         socket.emit("palabra_escogida", { mesaId: numMesa, palabra });
         setOpcionesPalabras([]); // Ocultar opciones tras escoger
     };
-    // Jugador actual en turno
-    useEffect(() => {
-        if (jugadores.length > 0) {
-            setTurno(jugadores[indiceTurno]);
-        }
-    }, [indiceTurno, jugadores]);
-
     // Regresar al menú principal
     const handleMenu = () => {
         setUsername("");
