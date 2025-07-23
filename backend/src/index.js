@@ -20,18 +20,29 @@ function generarMesaId() {
 function iniciarTurnos(mesaId) {
   const sala = salas[mesaId];
   if (!sala) return;
-
   // Inicializa si no existen
   sala.ronda = sala.ronda || 1;
   sala.indiceTurno = sala.indiceTurno || 0;
   sala.contador = 20;
+  // emitimos estado del turno a todos
+  const jugadorInicial = sala.jugadores[sala.indiceTurno];
+  sala.palabraActual = null;
+  io.to(mesaId).emit("estado_turno", {
+    turno: { ...jugadorInicial, palabra: null },
+    contador: sala.contador,
+    ronda: sala.ronda
+  });
   // emitir opciones al jugador inicial
   setTimeout(() => {
-    const jugadorInicial = sala.jugadores[sala.indiceTurno];
     const palabrasIniciales = obtenerTresPalabrasAleatorias();
     io.to(jugadorInicial.id).emit("opciones_palabras", palabrasIniciales);
+    // pausar contador mientras el jugador elige su palabra
+    if (sala.intervaloTurno) {
+      clearInterval(sala.intervaloTurno);
+      sala.intervaloTurno = null;
+    }
   }, 200); // delay para esperar y asegurar que el lado cliente este listo
-
+  // intervalo de turnos de jugadores
   sala.intervaloTurno = setInterval(() => {
     if (!sala.jugadores.length) return;
 
@@ -67,14 +78,27 @@ function iniciarTurnos(mesaId) {
           return;
         }
       }
-      // emitir opciones al jugador del turno
-      const jugadorDelTurno = sala.jugadores[sala.indiceTurno];
-      const palabras = obtenerTresPalabrasAleatorias();
-      io.to(jugadorDelTurno.id).emit("opciones_palabras", palabras);
+
       sala.palabraActual = null;
       sala.contador = 20;
-    }
 
+      io.to(mesaId).emit("estado_turno", {
+        turno: { ...jugadorDelTurno, palabra: null },
+        contador: sala.contador,
+        ronda: sala.ronda
+      });
+      // emitir opciones al jugador del turno tras delay
+      const jugadorDelTurno = sala.jugadores[sala.indiceTurno];
+      const palabras = obtenerTresPalabrasAleatorias();
+      setTimeout(() => {
+        io.to(jugadorDelTurno.id).emit("opciones_palabras", palabras);
+
+        if (sala.intervaloTurno) {
+          clearInterval(sala.intervaloTurno);
+          sala.intervaloTurno = null;
+        }
+      }, 200);
+    }
     // Emitimos estado del turno a todos los clientes
     io.to(mesaId).emit("estado_turno", {
       turno: {
@@ -209,6 +233,66 @@ io.on("connection", (socket) => {
 
     // Emitir la palabra a todos los jugadores de la sala
     io.to(mesaId).emit("nueva_palabra", { palabra });
+
+    // reiniciar el contador, solo si no esta ya corriendo
+    if (!sala.intervaloTurno) {
+      sala.contador = 20;
+
+      sala.intervaloTurno = setInterval(() => {
+        if (!sala.jugadores.length) return;
+
+        sala.contador--;
+        if (sala.contador <= 0) {
+          sala.indiceTurno++;
+          if (sala.indiceTurno >= sala.jugadores.length) {
+            sala.indiceTurno = 0;
+            sala.ronda++;
+
+            if (sala.ronda > 3) {
+              clearInterval(sala.intervaloTurno);
+              sala.intervaloTurno = null;
+
+              const ranking = [...sala.jugadores].sort((a, b) => b.puntos - a.puntos);
+              io.to(mesaId).emit("fin_partida", { ranking });
+
+              sala.jugadores.forEach(j => j.puntos = 0);
+              io.to(mesaId).emit("actualizar_jugadores", sala.jugadores);
+
+              setTimeout(() => {
+                sala.ronda = 1;
+                sala.indiceTurno = 0;
+                sala.contador = 20;
+
+                iniciarTurnos(mesaId);
+              }, 20000);
+              return;
+            }
+          }
+
+          // Siguiente jugador y entonces enviar palabras y pausar
+          const siguienteJugador = sala.jugadores[sala.indiceTurno];
+          const nuevasPalabras = obtenerTresPalabrasAleatorias();
+
+          io.to(siguienteJugador.id).emit("opciones_palabras", nuevasPalabras);
+          sala.palabraActual = null;
+          sala.contador = 20;
+
+          clearInterval(sala.intervaloTurno);
+          sala.intervaloTurno = null;
+          return;
+        }
+
+        io.to(mesaId).emit("estado_turno", {
+          turno: {
+            ...sala.jugadores[sala.indiceTurno],
+            palabra: sala.palabraActual
+          },
+          contador: sala.contador,
+          ronda: sala.ronda
+        });
+
+      }, 1000);
+    }
   });
 });
 

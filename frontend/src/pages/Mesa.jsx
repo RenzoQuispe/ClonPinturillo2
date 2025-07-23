@@ -236,13 +236,7 @@ function Mesa({ setCodigoMesa, setNumMesa, setUsername, setCurrentPage, username
                     </div>
                     {/* Campo de Dibujo */}
                     <div style={{ border: "5px solid #a09c34", background: "#FFFFFF" }} className="rounded-bl-3xl rounded-br-3xl h-[545px] w-[600px] text-black">
-                        {/* 
-                        CÓDIGO: {codigoMesa} <br />
-                        <div className=" text-lg">
-                            {turno ? `Turno de ${turno.username}` : "Esperando jugadores..."}
-                        </div>
-                        */}
-                        {turno?.id === socket.id && opcionesPalabras.length > 0 && (
+                        {opcionesPalabras.length > 0 && (
                             <OpcionesPalabras opciones={opcionesPalabras} onEscoger={escogerPalabra} />
                         )}
                         {finPartida && (
