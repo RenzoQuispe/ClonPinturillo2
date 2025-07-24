@@ -4,6 +4,7 @@ import MesaPrivada from './pages/MesaPrivada.jsx'
 import CrearMesa from './pages/CrearMesa.jsx';
 import UnirseMesa from './pages/UnirseMesa.jsx';
 import Mesa from './pages/Mesa.jsx';
+import LobbyPage from './pages/LobbyPage.jsx';
 import { useState } from 'react'
 
 function App() {
@@ -18,6 +19,8 @@ function App() {
         return <HomePage setUsername={setUsername} setCurrentPage={setCurrentPage} username={username} />;
       case 'mesaprivada':
         return <MesaPrivada setUsername={setUsername} setCurrentPage={setCurrentPage} username={username} />;
+      case 'lobby':
+        return <LobbyPage setNumMesa={setNumMesa} setCodigoMesa={setCodigoMesa} setUsername={setUsername} setCurrentPage={setCurrentPage} username={username} numMesa={numMesa} codigoMesa={codigoMesa} />
       case 'crearmesa':
         return <CrearMesa setUsername={setUsername} setCurrentPage={setCurrentPage} setNumMesa={setNumMesa} setCodigoMesa={setCodigoMesa} username={username} numMesa={numMesa}/>;
       case 'unirsemesa':

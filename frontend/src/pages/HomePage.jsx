@@ -3,7 +3,7 @@ import Footer from "../components/Footer"
 import { useRef } from "react";
 
 function HomePage({ setUsername, setCurrentPage, username }) {
-    const inputRefUsername = useRef(null); 
+    const inputRefUsername = useRef(null);
 
     const handleMesaPrivada = () => {
         const username = inputRefUsername.current.value.trim();
@@ -12,6 +12,13 @@ function HomePage({ setUsername, setCurrentPage, username }) {
             setCurrentPage('mesaprivada');
         }
     };
+    const handleLobbySalasPublicas = () => {
+        const username = inputRefUsername.current.value.trim();
+        if (username) {
+            setUsername(username);
+            setCurrentPage('lobby')
+        }
+    }
     return (
 
         <div style={{ backgroundColor: '#336767', height: '100dvh' }} className="overflow-auto flex flex-col items-center">
@@ -41,7 +48,7 @@ function HomePage({ setUsername, setCurrentPage, username }) {
                     <div className="justify-between mt-3 ml-2">
                         <button
                             className="w-[290px] py-1 text-2xl text-yellow-400 border rounded-xl hover:brightness-150 cursor-pointer"
-
+                            onClick={handleLobbySalasPublicas}
                         >
                             LOBBY
                         </button>
@@ -55,7 +62,7 @@ function HomePage({ setUsername, setCurrentPage, username }) {
                 </div>
             </div>
             <Footer />
-        </div>  
+        </div>
     )
 }
 export default HomePage
