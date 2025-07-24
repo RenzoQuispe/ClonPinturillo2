@@ -274,6 +274,7 @@ io.on("connection", (socket) => {
             if (sala.ronda > 3) {
               clearInterval(sala.intervaloTurno);
               sala.intervaloTurno = null;
+              sala.contador = null;
 
               const ranking = [...sala.jugadores].sort((a, b) => b.puntos - a.puntos);
               io.to(mesaId).emit("fin_partida", { ranking });

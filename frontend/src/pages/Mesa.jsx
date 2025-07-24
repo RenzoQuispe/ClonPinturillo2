@@ -149,7 +149,7 @@ function Mesa({ setCodigoMesa, setNumMesa, setUsername, setCurrentPage, username
     // Rondas y fin de la partida
     const [ronda, setRonda] = useState(1);
     const [finPartida, setFinPartida] = useState(false);
-    const [contadorReinicio, setContadorReinicio] = useState(10);
+    const [contadorReinicio, setContadorReinicio] = useState(20);
     const intervaloReinicio = useRef(null);
     useEffect(() => {
         const handleEstadoTurno = ({ turno, contador, ronda }) => {
@@ -164,7 +164,7 @@ function Mesa({ setCodigoMesa, setNumMesa, setUsername, setCurrentPage, username
             setFinPartida(true);
             setMensajes([]);
             // para la el componente tabla final
-            setContadorReinicio(10)
+            setContadorReinicio(20)
             if (intervaloReinicio.current) {
                 clearInterval(intervaloReinicio.current);
             }
@@ -182,7 +182,7 @@ function Mesa({ setCodigoMesa, setNumMesa, setUsername, setCurrentPage, username
                 setFinPartida(false);
                 setMensajes([]);
                 setContadorTurno(null)
-            }, 10000);
+            }, 20000);
         };
         socket.on("fin_partida", handleFinPartida);
         return () => {
@@ -237,27 +237,25 @@ function Mesa({ setCodigoMesa, setNumMesa, setUsername, setCurrentPage, username
                 <div>
                     {/* Encabezado*/}
                     <div style={{ background: "#d03434" }} className="flex space-x-1 rounded-tl-3xl rounded-tr-3xl h-[80px] w-[600px]">
-                        <div className="border-5 rounded-full w-[70px] h-[65px] bg-gray-200 text-5xl text-center font-bold ml-3 mt-2">{contadorTurno}</div>
+                        <div className="border-5 rounded-full w-[70px] h-[65px] bg-gray-200 text-5xl text-center font-bold ml-3 mt-2">{!finPartida ? contadorTurno : ""}</div>
                         <div className="ml-3 mt-2">
                             <div className="text-2xl font-bold">MESA N° {numMesa} &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; RONDA {ronda}/3</div>
                             <div style={{ background: "#c03434" }} className="rounded-tl-2xl rounded-tr-2xl h-[40px] w-[410px] flex items-center justify-center">
                                 {/* Mostrar palabra actual SOLO si es su turno, si no mostrar palabra escondida */}
-                                {(turno?.id === socket.id && turno?.palabra && !finPartida) ? (
-                                    <>
-                                        <span className="font-bold text-3xl">
-                                            {turno.palabra}
-                                        </span>
-                                    </>
-                                ) : !finPartida ? (
-                                    <>
-                                        <span className="text-white">Mostrar palabra escondida progresivamente ...</span>
-                                    </>
+                                {!finPartida ? (
+                                    turno?.palabra ? (
+                                        turno?.id === socket.id ? (
+                                            <span className="font-bold text-3xl">{turno.palabra}</span>
+                                        ) : (
+                                            <span className="text-white">Mostrar palabra escondida progresivamente ...</span>
+                                        )
+                                    ) : (
+                                        <span style={{ color: "#ffcc04"}} className="text-4xl font-bold">?</span>
+                                    )
                                 ) : (
-                                    <>
-                                        <span></span>
-                                    </>
-                                )
-                                }
+                                    <></>
+                                )}
+
                             </div>
                         </div>
                     </div>
@@ -310,7 +308,7 @@ function Mesa({ setCodigoMesa, setNumMesa, setUsername, setCurrentPage, username
                                 <ul>
                                     {ranking.map((j, i) => (
                                         <div key={i} className="flex space-x-3">
-                                            <div className="bg-gray-900 text-white text-2xl font-semibold rounded-sm mt-3 w-[225px] flex justify-between px-5">
+                                            <div className="bg-gray-800 text-white text-2xl font-semibold rounded-sm mt-3 w-[225px] flex justify-between px-5">
                                                 <span>{i + 1}</span>
                                                 <span>{j.username}</span>
                                             </div>
