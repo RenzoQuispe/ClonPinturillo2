@@ -23,7 +23,7 @@ function iniciarTurnos(mesaId) {
   // Inicializa si no existen
   sala.ronda = sala.ronda || 1;
   sala.indiceTurno = sala.indiceTurno || 0;
-  sala.contador = 20;
+  sala.contador = 99;
   // emitimos estado del turno a todos
   const jugadorInicial = sala.jugadores[sala.indiceTurno];
   sala.palabraActual = null;
@@ -75,7 +75,7 @@ function iniciarTurnos(mesaId) {
           setTimeout(() => {
             sala.ronda = 1;
             sala.indiceTurno = 0;
-            sala.contador = 20;
+            sala.contador = 99;
 
             iniciarTurnos(mesaId);
           }, 20000);
@@ -85,7 +85,7 @@ function iniciarTurnos(mesaId) {
       }
 
       sala.palabraActual = null;
-      sala.contador = 20;
+      sala.contador = 99;
       sala.jugadores.forEach(j => j.ya_adivino = false);
 
       const jugadorDelTurno = sala.jugadores[sala.indiceTurno];
@@ -136,7 +136,7 @@ io.on("connection", (socket) => {
       codigo: roomCode,
       jugadores: [{ id: socket.id, username, puntos: 0, color: colorJugador, ya_adivino: false }],
       indiceTurno: 0,
-      contador: 20,
+      contador: 99,
       intervaloTurno: null,
       ronda: 1,
       partidasTerminadas: 0,
@@ -259,7 +259,7 @@ io.on("connection", (socket) => {
 
     // reiniciar el contador, solo si no esta ya corriendo
     if (!sala.intervaloTurno) {
-      sala.contador = 20;
+      sala.contador = 99;
 
       sala.intervaloTurno = setInterval(() => {
         if (!sala.jugadores.length) return;
@@ -285,7 +285,7 @@ io.on("connection", (socket) => {
               setTimeout(() => {
                 sala.ronda = 1;
                 sala.indiceTurno = 0;
-                sala.contador = 20;
+                sala.contador = 99;
 
                 iniciarTurnos(mesaId);
               }, 20000);
@@ -295,7 +295,7 @@ io.on("connection", (socket) => {
 
           const siguienteJugador = sala.jugadores[sala.indiceTurno];
           sala.palabraActual = null;
-          sala.contador = 20;
+          sala.contador = 99;
           sala.jugadores.forEach(j => j.ya_adivino = false);
           // emitir el estado del turno
           io.to(mesaId).emit("estado_turno", {
