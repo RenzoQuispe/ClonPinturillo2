@@ -203,7 +203,10 @@ function Mesa({ setCodigoMesa, setNumMesa, setUsername, setCurrentPage, username
                     <ul>
                         {jugadores.length > 0 ? (
                             jugadores
-                                .slice() // copia para no mutar el state
+                                .filter((jugador, index, self) =>
+                                    index === self.findIndex(j => j.id === jugador.id)
+                                ) // eliminamos duplicados por id
+                                .slice()
                                 .sort((a, b) => b.puntos - a.puntos)
                                 .map((jugador, index) => {
                                     const esTurno = turno && turno.id === jugador.id;
@@ -250,7 +253,7 @@ function Mesa({ setCodigoMesa, setNumMesa, setUsername, setCurrentPage, username
                                             <span className="text-white">Mostrar palabra escondida progresivamente ...</span>
                                         )
                                     ) : (
-                                        <span style={{ color: "#ffcc04"}} className="text-4xl font-bold">?</span>
+                                        <span style={{ color: "#ffcc04" }} className="text-4xl font-bold">?</span>
                                     )
                                 ) : (
                                     <></>

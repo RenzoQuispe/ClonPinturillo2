@@ -9,13 +9,16 @@ const io = new Server(server, { cors: { origin: "*" } });
 
 const salas = {};
 
+let siguienteIdDisponible = 100000;
+
 function generarMesaId() {
-  let id;
-  do {
-    id = Math.floor(100000 + Math.random() * 900000);
-  } while (salas[id]);
-  return id;
+  while (salas[siguienteIdDisponible]) {
+    siguienteIdDisponible++;
+    if (siguienteIdDisponible > 999999) siguienteIdDisponible = 100000;
+  }
+  return (siguienteIdDisponible++).toString();
 }
+
 // Función que controla el contador y los turnos de una sala
 function iniciarTurnos(mesaId) {
   const sala = salas[mesaId];
@@ -128,13 +131,14 @@ io.on("connection", (socket) => {
       socket.emit("sala_eliminada");
     }
   });
-  // Crear sala
+  // Crear sala privada
   socket.on("crear_sala", ({ username, roomCode }) => {
     const mesaId = generarMesaId().toString();
     const colorJugador = COLORES_DISPONIBLES[Math.floor(Math.random() * COLORES_DISPONIBLES.length)];
     salas[mesaId] = {
       codigo: roomCode,
       jugadores: [{ id: socket.id, username, puntos: 0, color: colorJugador, ya_adivino: false }],
+      publica: false,
       indiceTurno: 0,
       contador: 99,
       intervaloTurno: null,
@@ -151,7 +155,7 @@ io.on("connection", (socket) => {
 
     iniciarTurnos(mesaId); // Iniciar control de turnos
   });
-  // Unirse a sala
+  // Unirse a sala privada
   socket.on("unirse_sala", ({ username, numMesa, codigoMesa }, callback) => {
     const sala = salas[numMesa];
     if (!sala) return callback({ success: false, message: 'Sala no existe' });
@@ -176,6 +180,67 @@ io.on("connection", (socket) => {
 
     return callback({ success: true });
   });
+  // Unirse a sala publica
+  socket.on("unirse_sala_publica", ({ username }, callback) => {
+    // buscar sala publica con espacio, maximo 8 jugadores
+    const salaDisponible = Object.entries(salas).find(([_, sala]) =>
+      sala.publica &&
+      sala.jugadores.length < 8
+    );
+    // agregar jugador a la sala publica disponible
+    if (salaDisponible) {
+      const [mesaId, sala] = salaDisponible;
+
+      const coloresUsados = sala.jugadores.map(j => j.color);
+      const coloresDisponibles = COLORES_DISPONIBLES.filter(c => !coloresUsados.includes(c));
+      const colorJugador = coloresDisponibles.length > 0
+        ? coloresDisponibles[Math.floor(Math.random() * coloresDisponibles.length)]
+        : COLORES_DISPONIBLES[Math.floor(Math.random() * COLORES_DISPONIBLES.length)];
+  
+      const nuevoJugador = {
+        id: socket.id,
+        username,
+        puntos: 0,
+        color: colorJugador,
+        ya_adivino: false
+      };
+  
+      sala.jugadores.push(nuevoJugador);
+      socket.join(mesaId);
+      io.to(mesaId).emit("actualizar_jugadores", sala.jugadores);
+      return callback({ success: true, mesaId });
+    }
+  
+    // si no hay salas disponibles, crea una nueva
+    const nuevaMesaId = generarMesaId().toString();
+    const colorJugador = COLORES_DISPONIBLES[Math.floor(Math.random() * COLORES_DISPONIBLES.length)];
+  
+    salas[nuevaMesaId] = {
+      codigo: null,
+      jugadores: [{
+        id: socket.id,
+        username,
+        puntos: 0,
+        color: colorJugador,
+        ya_adivino: false
+      }],
+      indiceTurno: 0,
+      contador: 99,
+      intervaloTurno: null,
+      ronda: 1,
+      partidasTerminadas: 0,
+      palabraActual: null,
+      escogiendoPalabra: false,
+      publica: true
+    };
+  
+    socket.join(nuevaMesaId);
+    io.to(nuevaMesaId).emit("actualizar_jugadores", salas[nuevaMesaId].jugadores);
+    iniciarTurnos(nuevaMesaId);
+  
+    return callback({ success: true, mesaId: nuevaMesaId });
+  });
+  
   // Lista de jugadores en Mesa.jsx
   socket.on("solicitar_jugadores", (numMesa) => {
     const sala = salas[numMesa];

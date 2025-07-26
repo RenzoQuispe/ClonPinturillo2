@@ -1,8 +1,9 @@
 import Header from "../components/Header"
 import Footer from "../components/Footer"
 import { useRef } from "react";
+import socket from "../libs/socket";
 
-function HomePage({ setUsername, setCurrentPage, username }) {
+function HomePage({ setUsername, setCurrentPage, username, setNumMesa, setCodigoMesa }) {
     const inputRefUsername = useRef(null);
 
     const handleMesaPrivada = () => {
@@ -19,6 +20,23 @@ function HomePage({ setUsername, setCurrentPage, username }) {
             setCurrentPage('lobby')
         }
     }
+    const handleJugar = () => {
+        const nombre = inputRefUsername.current.value.trim();
+        if (!nombre) return;
+
+        setUsername(nombre);
+        socket.emit("unirse_sala_publica", { username: nombre }, ({ success, mesaId }) => {
+            if (success) {
+                setUsername(username)
+                setNumMesa(mesaId);
+                setCodigoMesa(null);
+                setCurrentPage("mesa");
+            } else {
+                console.error("No se pudo unir a una sala pública");
+            }
+        });
+    };
+
     return (
 
         <div style={{ backgroundColor: '#336767', height: '100dvh' }} className="overflow-auto flex flex-col items-center">
@@ -40,7 +58,7 @@ function HomePage({ setUsername, setCurrentPage, username }) {
                         />
                         <button
                             className="text-2xl py-2 font-bold bg-yellow-400 rounded-xl w-[600px] mt-3 ml-2 hover:brightness-150 cursor-pointer"
-
+                            onClick={handleJugar}
                         >
                             !A JUGAR¡
                         </button>
