@@ -21,11 +21,11 @@ function HomePage({ setUsername, setCurrentPage, username, setNumMesa, setCodigo
         }
     }
     const handleJugar = () => {
-        const nombre = inputRefUsername.current.value.trim();
-        if (!nombre) return;
+        const username = inputRefUsername.current.value.trim();
+        if (!username) return;
 
-        setUsername(nombre);
-        socket.emit("unirse_sala_publica", { username: nombre }, ({ success, mesaId }) => {
+        setUsername(username);
+        socket.emit("unirse_sala_publica", { username: username }, ({ success, mesaId }) => {
             if (success) {
                 setUsername(username)
                 setNumMesa(mesaId);

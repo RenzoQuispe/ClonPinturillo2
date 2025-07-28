@@ -29,6 +29,5 @@ export function obtenerTresPalabrasAleatorias() {
       seleccionadas.push(palabra);
     }
   }
-  console.log("obtenerTresPalabrasAleatorias() :", seleccionadas)
   return seleccionadas;
 }

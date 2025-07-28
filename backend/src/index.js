@@ -152,7 +152,10 @@ io.on("connection", (socket) => {
     console.log(`${username} creo la sala ${mesaId} con contraseña ${roomCode}`);
     io.to(mesaId).emit("actualizar_jugadores", salas[mesaId].jugadores);
     socket.emit('sala_creada', { mesaId, roomCode });
-
+    console.log("Salas existentes:");
+    for (const [mesaId, sala] of Object.entries(salas)) {
+      console.log(`- MesaID: ${mesaId}, Pública: ${sala.publica}`);
+    }
     iniciarTurnos(mesaId); // Iniciar control de turnos
   });
   // Unirse a sala privada
@@ -196,7 +199,7 @@ io.on("connection", (socket) => {
       const colorJugador = coloresDisponibles.length > 0
         ? coloresDisponibles[Math.floor(Math.random() * coloresDisponibles.length)]
         : COLORES_DISPONIBLES[Math.floor(Math.random() * COLORES_DISPONIBLES.length)];
-  
+
       const nuevoJugador = {
         id: socket.id,
         username,
@@ -204,17 +207,17 @@ io.on("connection", (socket) => {
         color: colorJugador,
         ya_adivino: false
       };
-  
+
       sala.jugadores.push(nuevoJugador);
       socket.join(mesaId);
       io.to(mesaId).emit("actualizar_jugadores", sala.jugadores);
       return callback({ success: true, mesaId });
     }
-  
+
     // si no hay salas disponibles, crea una nueva
     const nuevaMesaId = generarMesaId().toString();
     const colorJugador = COLORES_DISPONIBLES[Math.floor(Math.random() * COLORES_DISPONIBLES.length)];
-  
+
     salas[nuevaMesaId] = {
       codigo: null,
       jugadores: [{
@@ -233,19 +236,24 @@ io.on("connection", (socket) => {
       escogiendoPalabra: false,
       publica: true
     };
-  
+    
+    console.log(`${username} creo la sala publica ${nuevaMesaId}`)
+    console.log("Salas existentes:");
+    for (const [mesaId, sala] of Object.entries(salas)) {
+      console.log(`- MesaID: ${mesaId}, Pública: ${sala.publica}`);
+    }
+
     socket.join(nuevaMesaId);
     io.to(nuevaMesaId).emit("actualizar_jugadores", salas[nuevaMesaId].jugadores);
     iniciarTurnos(nuevaMesaId);
-  
+
     return callback({ success: true, mesaId: nuevaMesaId });
   });
-  
+
   // Lista de jugadores en Mesa.jsx
   socket.on("solicitar_jugadores", (numMesa) => {
-    const sala = salas[numMesa];
-    console.log(`Jugadores Solicitados y emitidos por ${socket.id}: `, sala.jugadores)
-    io.to(numMesa).emit("actualizar_jugadores", sala.jugadores);
+    const sala = salas[numMesa]; +
+      io.to(numMesa).emit("actualizar_jugadores", sala.jugadores);
   });
   // Para el chat en tiempo real
   socket.on("enviar_mensaje", ({ numMesa, mensaje }) => {
