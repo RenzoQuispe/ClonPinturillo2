@@ -4,6 +4,7 @@ import React, { useEffect, useState, useRef } from "react";
 import socket from "../libs/socket";
 import OpcionesPalabras from "../components/OpcionesPalabras";
 import { Send } from "lucide-react";
+import BarraHerramientasDibujo from "../components/BarraHerramientasDibujo";
 
 function Mesa({ setCodigoMesa, setNumMesa, setUsername, setCurrentPage, username, numMesa, codigoMesa }) {
 
@@ -282,9 +283,12 @@ function Mesa({ setCodigoMesa, setNumMesa, setUsername, setCurrentPage, username
                             />
                         ) : null}
 
-                        {opcionesPalabras.length > 0 && (
+                        {opcionesPalabras.length > 0 ? (
                             <OpcionesPalabras opciones={opcionesPalabras} onEscoger={escogerPalabra} />
+                        ) : (
+                            turno?.id === socket.id && !finPartida && <BarraHerramientasDibujo />
                         )}
+
                         {finPartida && (
                             <div className="p-6 rounded-lg shadow-xl text-center">
                                 {/* Mostrar ganadores */}
