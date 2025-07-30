@@ -5,6 +5,7 @@ import socket from "../libs/socket";
 import OpcionesPalabras from "../components/OpcionesPalabras";
 import { Send } from "lucide-react";
 import BarraHerramientasDibujo from "../components/BarraHerramientasDibujo";
+import CampoCanvasDibujo from "../components/CampoCanvasDibujo";
 
 function Mesa({ setCodigoMesa, setNumMesa, setUsername, setCurrentPage, username, numMesa, codigoMesa }) {
 
@@ -18,6 +19,9 @@ function Mesa({ setCodigoMesa, setNumMesa, setUsername, setCurrentPage, username
     useEffect(() => { // scroll automatico
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }, [mensajes]);
+    // campo de dibujo
+    const [ColorActual, setColorActual] = useState("#000000");
+    const [GrosorActual, setGrosorActual] = useState("3");
     // cursor
     const [CursorColor, setCursorColor] = useState("azul")
     const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
@@ -266,7 +270,7 @@ function Mesa({ setCodigoMesa, setNumMesa, setUsername, setCurrentPage, username
                     {/* Campo de Dibujo */}
                     <div
                         style={{ backgroundImage: `url(${finPartida ? "/fondo_tabla_final.png" : "/fondo_campo_dibujo.png"})`, cursor: (MostrarCustomCursor && turno?.id === socket.id) ? 'none' : 'default', border: "5px solid #a09c34", background: "#FFFFFF" }}
-                        className="rounded-bl-3xl rounded-br-3xl h-[545px] w-[600px] text-black"
+                        className="relative rounded-bl-3xl rounded-br-3xl h-[545px] w-[600px] text-black"
                         onMouseEnter={() => setMostrarCustomCursor(true)}
                         onMouseLeave={() => setMostrarCustomCursor(false)}
                     >
@@ -282,13 +286,36 @@ function Mesa({ setCodigoMesa, setNumMesa, setUsername, setCurrentPage, username
                                 }}
                             />
                         ) : null}
-
+                        <CampoCanvasDibujo
+                            esDibujante={turno?.id === socket.id}
+                            socket={socket}
+                            color={ColorActual}
+                            grosor={GrosorActual}
+                        />
                         {opcionesPalabras.length > 0 ? (
-                            <OpcionesPalabras opciones={opcionesPalabras} onEscoger={escogerPalabra} />
+                            <div className="absolute w-[590px] top-0 left-0 z-10"> 
+                                <OpcionesPalabras opciones={opcionesPalabras} onEscoger={escogerPalabra} />
+                            </div>
                         ) : (
-                            turno?.id === socket.id && !finPartida && <BarraHerramientasDibujo />
+                            turno?.id === socket.id && !finPartida && <div className="absolute top-0 left-0 z-10">
+                                <BarraHerramientasDibujo
+                                    onColorChange={(color) => {
+                                        setColorActual(color);
+                                        console.log("color lapiz cambiado: ", color)
+                                    }}
+                                    onGrosorChange={(grosor) => {
+                                        setGrosorActual(grosor);
+                                        console.log("grosor lapiz cambiado: ", grosor)
+                                    }}
+                                    onLimpiar={() => {
+                                        socket.emit("limpiar_canvas", { mesaId: numMesa });
+                                    }}
+                                    onSaltarTurno={() => {
+                                        socket.emit("saltar_turno", { mesaId: numMesa });
+                                    }}
+                                />
+                            </div>
                         )}
-
                         {finPartida && (
                             <div className="p-6 rounded-lg shadow-xl text-center">
                                 {/* Mostrar ganadores */}
