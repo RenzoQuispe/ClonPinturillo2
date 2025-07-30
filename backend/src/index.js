@@ -236,7 +236,7 @@ io.on("connection", (socket) => {
       escogiendoPalabra: false,
       publica: true
     };
-    
+
     console.log(`${username} creo la sala publica ${nuevaMesaId}`)
     console.log("Salas existentes:");
     for (const [mesaId, sala] of Object.entries(salas)) {
@@ -397,6 +397,23 @@ io.on("connection", (socket) => {
 
       }, 1000);
     }
+  });
+  // dibujo a tiempo a real
+  socket.on("dibujo", (data) => {
+    const sala = Object.entries(salas).find(([_, s]) =>
+      s.jugadores.some(j => j.id === socket.id)
+    ); // busca en que sala esta el jugador que emitio el trazo
+    if (!sala) return;
+    const [mesaId] = sala;
+    socket.to(mesaId).emit("dibujo", data);
+  });
+  // limpiar area de dibujo
+  socket.on("limpiar_canvas", ({ mesaId }) => {
+    console.log("limpiar canvas: ", mesaId)
+  });
+  // saltar turno del dibujante
+  socket.on("saltar_turno", ({ mesaId }) => {
+    console.log("saltar turno:", mesaId)
   });
 });
 
