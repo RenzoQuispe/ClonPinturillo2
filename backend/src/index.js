@@ -86,7 +86,7 @@ function iniciarTurnos(mesaId) {
           return;
         }
       }
-
+      
       sala.palabraActual = null;
       sala.contador = 99;
       sala.jugadores.forEach(j => j.ya_adivino = false);
@@ -408,7 +408,13 @@ io.on("connection", (socket) => {
     socket.to(mesaId).emit("dibujo", data);
   });
   // limpiar area de dibujo
-  socket.on("limpiar_canvas", ({ mesaId }) => {
+  socket.on("limpiar_canvas", () => {
+    const sala = Object.entries(salas).find(([_, s]) =>
+      s.jugadores.some(j => j.id === socket.id)
+    ); // busca en que sala esta el jugador emitio
+    if (!sala) return;
+    const [mesaId] = sala;
+    io.to(mesaId).emit("limpiar_canvas");
     console.log("limpiar canvas: ", mesaId)
   });
   // saltar turno del dibujante
