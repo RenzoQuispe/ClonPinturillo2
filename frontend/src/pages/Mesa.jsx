@@ -151,6 +151,11 @@ function Mesa({ setCodigoMesa, setNumMesa, setUsername, setCurrentPage, username
             socket.off("estado_turno", handleEstadoTurno);
         };
     }, []);
+    useEffect(() => {
+        if (contadorTurno === 99) {
+            socket.emit("limpiar_canvas");
+        }
+    }, [contadorTurno]);
     // Rondas y fin de la partida
     const [ronda, setRonda] = useState(1);
     const [finPartida, setFinPartida] = useState(false);
@@ -165,6 +170,7 @@ function Mesa({ setCodigoMesa, setNumMesa, setUsername, setCurrentPage, username
         socket.on("estado_turno", handleEstadoTurno);
 
         const handleFinPartida = ({ ranking }) => {
+            socket.emit("limpiar_canvas");
             setRanking(ranking);
             setFinPartida(true);
             setMensajes([]);
@@ -293,7 +299,7 @@ function Mesa({ setCodigoMesa, setNumMesa, setUsername, setCurrentPage, username
                             grosor={GrosorActual}
                         />
                         {opcionesPalabras.length > 0 ? (
-                            <div className="absolute w-[590px] top-0 left-0 z-10"> 
+                            <div className="absolute w-[590px] top-0 left-0 z-10">
                                 <OpcionesPalabras opciones={opcionesPalabras} onEscoger={escogerPalabra} />
                             </div>
                         ) : (
@@ -308,7 +314,7 @@ function Mesa({ setCodigoMesa, setNumMesa, setUsername, setCurrentPage, username
                                         console.log("grosor lapiz cambiado: ", grosor)
                                     }}
                                     onLimpiar={() => {
-                                        socket.emit("limpiar_canvas", { mesaId: numMesa });
+                                        socket.emit("limpiar_canvas");
                                     }}
                                     onSaltarTurno={() => {
                                         socket.emit("saltar_turno", { mesaId: numMesa });
