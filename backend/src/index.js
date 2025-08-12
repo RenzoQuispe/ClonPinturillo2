@@ -2,6 +2,7 @@ import { Server } from 'socket.io';
 import express from 'express';
 import http from 'http';
 import { obtenerTresPalabrasAleatorias } from '../db/utils.js';
+import  {NODE_PORT} from './config/env.js';
 
 const app = express();
 const server = http.createServer(app);
@@ -423,8 +424,8 @@ io.on("connection", (socket) => {
   });
 });
 
-server.listen(5000, () => {
-  console.log("Servidor corriendo en puerto 5000");
+server.listen(NODE_PORT, () => {
+  console.log("Servidor corriendo en puerto ", NODE_PORT);
 });
 
 const COLORES_DISPONIBLES = [
