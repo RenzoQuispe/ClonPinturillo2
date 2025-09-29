@@ -48,7 +48,12 @@ Accede a la aplicación web desde cualquier dispositivo en tu red local usando: 
     <img src="./frontend/public/readme/fin_partida.png" width="70%">
 </p>
 
+### Futuras mejoras
 
+- Listado de salas públicas: implementar un espacio común (LOBBY) donde los jugadores puedan visualizar las salas públicas disponibles y unirse con un solo click.
+- Optimización del banco de palabras: actualizar el archivo `backend/db/palabras.txt` para incluir únicamente palabras adecuadas y divertidas que se adapten mejor a la dinámica del juego.
+- Revelado progresivo de la palabra: añadir una mecánica de ayuda donde, cada 15 segundos, se muestre una letra adicional de la palabra a adivinar hasta completarla.
+- Mejoras estéticas generales
   
     
 
